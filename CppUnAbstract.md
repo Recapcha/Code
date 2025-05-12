@@ -1,12 +1,136 @@
 Abstract - конспект. Этот файл коспект использования C++ в unreal engine
+
+alt + t hot key 
+
+>    - [[CppUnAbstract#Создание с++ актора в UE|Создание с++ актора в UE]]
+>    - [[CppUnAbstract#Структура класса |Структура класса ]]
+>        - [[CppUnAbstract#Super|Super]]
+>    - [[CppUnAbstract#Горячие клавиши|Горячие клавиши]]
+>    - [[CppUnAbstract#f12 провалится в класс и посмотреть его исходный код|f12 провалится в класс и посмотреть его исходный код]]
+>    - [[CppUnAbstract#Логирование. Макрос в UE|Логирование. Макрос в UE]]
+>    - [[CppUnAbstract#Создание функции|Создание функции]]
+>    - [[CppUnAbstract#Собственная категория логирования|Собственная категория логирования]]
+>    - [[CppUnAbstract#Тип FString. Вывод на экран сообщения. FColor|Тип FString. Вывод на экран сообщения. FColor]]
+>    - [[CppUnAbstract#Макрос UPROPERTY|Макрос UPROPERTY]]
+>    - [[CppUnAbstract#Создание блюпринта из класса С++|Создание блюпринта из класса С++]]
+>    - [[CppUnAbstract#Компоненты|Компоненты]]
+>        - [[CppUnAbstract#Static Mesh Component и Root|Static Mesh Component и Root]]
+>    - [[CppUnAbstract#Тип FTransform|Тип FTransform]]
+>    - [[CppUnAbstract#Работа с Tick|Работа с Tick]]
+>    - [[CppUnAbstract#ENUM|ENUM]]
+>    - [[CppUnAbstract#USTRUCT|USTRUCT]]
+>    - [[CppUnAbstract#Material|Material]]
+>    - [[CppUnAbstract#Timer|Timer]]
+>    - [[CppUnAbstract#Spawn|Spawn]]
+>    - [[CppUnAbstract#UFUNCTION|UFUNCTION]]
+>    - [[CppUnAbstract#Делегаты. |Делегаты. ]]
+>    - [[CppUnAbstract#Pawn. GameModeBase|Pawn. GameModeBase]]
+>    - [[CppUnAbstract#Player Controller|Player Controller]]
+>    - [[CppUnAbstract#Modules, Targets, UnrealBuildTool|Modules, Targets, UnrealBuildTool]]
+>    - [[CppUnAbstract#Garbage Collector|Garbage Collector]]
+>    - [[CppUnAbstract#Clang Format |Clang Format ]]
+>    - [[CppUnAbstract#Gitignore|Gitignore]]
+>    - [[CppUnAbstract#ACharacter|ACharacter]]
+>    - [[CppUnAbstract#Build|Build]]
+>    - [[CppUnAbstract#Movement Base|Movement Base]]
+>    - [[CppUnAbstract#Camera|Camera]]
+>    - [[CppUnAbstract#Jump|Jump]]
+>    - [[CppUnAbstract#Nitro. Character Movement Component|Nitro. Character Movement Component]]
+>    - [[CppUnAbstract#Health bar component|Health bar component]]
+>    - [[CppUnAbstract#Check|Check]]
+>    - [[CppUnAbstract#Указать границы |Указать границы ]]
+>    - [[CppUnAbstract#TakeDamage|TakeDamage]]
+>    - [[CppUnAbstract#Разное|Разное]]
+>    - [[CppUnAbstract#- склейка двух элементов |- склейка двух элементов ]]
+
+
+
+## Создание с++ актора в UE
+
+![[Pasted image 20250510153256.png]]
+
+## Структура класса 
+
+### Super
+
+это алиас на имя базового класса, класса родителя, в классичесом c++ это пишется. Позволяет обращаться ко всем функциям базового класса, через ключевое слово super 
+
+```
+Super::BeginPlay();
+AActor::BeginPlay();
+```
+
+## Горячие клавиши
+
+## f12 провалится в класс и посмотреть его исходный код
+
+При нажатии на текстовый документ мы может найти его еще раз 
+![[Pasted image 20250510185320.png]]
+
+зайдя дойдем до еще одного исходного файла
+
+![[Pasted image 20250510184706.png]]
+
+![[Pasted image 20250510185354.png]]
 ## Логирование. Макрос в UE
 ---
 
+Первый параметр это категория логирования, доп строчка, по которой мы можем фильтровать логи 
+Уровень логирования, можем выдавать обычные сообщения, предупреждения или ошибка. 
+
 ```cpp
-UE_LOG(LogTemp, Display, TEXT("Hello Unreal!"));
-UE_LOG(LogTemp, Warning, TEXT("Hello Unreal!"));
-UE_LOG(LogTemp, Error, TEXT("Hello Unreal!"));
+// Called when the game starts or when spawned
+void ATestingNewActor::BeginPlay()
+{
+    Super::BeginPlay();
+
+    //LogTemp это готовая категория логирования 
+    UE_LOG(LogTemp, Display, TEXT("Hello Unreal!"));
+    UE_LOG(LogTemp, Warning, TEXT("Hello Unreal!"));
+    UE_LOG(LogTemp, Error, TEXT("Hello Unreal!"));
+
+    int WeaponsNum = 4;
+    int KillsNum = 7;
+    float Health = 35.531;
+    bool IsDead = false;
+    bool HasWeapon = true;
+
+    UE_LOG(LogTemp, Display, TEXT("WeaponsNum "), WeaponsNum);
+    UE_LOG(LogTemp, Display, TEXT("KillsNum "), KillsNum);
+    UE_LOG(LogTemp, Display, TEXT("Health "), Health);
+    UE_LOG(LogTemp, Display, TEXT("Health "), Health);
+    UE_LOG(LogTemp, Display, TEXT("IsDead "), IsDead);
+    UE_LOG(LogTemp, Display, TEXT("HasWeapon "), static_cast<int>(HasWeapon));
+
+    UE_LOG(LogTemp, Display, TEXT("------------------------------"));
+
+    //Спецификатор доступа, без них числа не выведутся
+    UE_LOG(LogTemp, Display, TEXT("WeaponsNum %d "), WeaponsNum);                //int
+    UE_LOG(LogTemp, Display, TEXT("KillsNum %i"), KillsNum);                     //int
+    UE_LOG(LogTemp, Display, TEXT("Health %f"), Health);                         //float
+    UE_LOG(LogTemp, Display, TEXT("Health %.2f"), Health);                       //float с ограничением после .
+    UE_LOG(LogTemp, Display, TEXT("IsDead %d"), IsDead);                         //bool
+    UE_LOG(LogTemp, Display, TEXT("HasWeapon %d"), static_cast<int>(HasWeapon)); //bool конвертация в int
+}
 ```
+
+LogTemp: Repeating last play command: Selected Viewport
+LogTemp: Display: Hello Unreal!
+LogTemp: Warning: Hello Unreal!
+LogTemp: Error: Hello Unreal!
+LogTemp: Display: WeaponsNum 
+LogTemp: Display: KillsNum 
+LogTemp: Display: Health 
+LogTemp: Display: Health 
+LogTemp: Display: IsDead 
+LogTemp: Display: HasWeapon 
+LogTemp: Display: ------------------------------
+LogTemp: Display: WeaponsNum 4 
+LogTemp: Display: KillsNum 7
+LogTemp: Display: Health 35.530998
+LogTemp: Display: Health 35.53
+LogTemp: Display: IsDead 0
+LogTemp: Display: HasWeapon 1
 
 ![[Pasted image 20241112194755.png]]
 
@@ -16,6 +140,20 @@ UE_LOG(LogTemp, Error, TEXT("Hello Unreal!"));
 Идентификтатор 
 %d , %i - целые числа
 %f - float
+
+![[Pasted image 20250510161726.png]]
+
+По этому пути можно найти файл с логом 
+Game\Saved\Logs
+
+Лог весь грузится друг на друга и более старый лог лежит в начале и самый новый будет в конце 
+
+Вывод названия актора в лог
+
+```
+    //GetName - встроенная функция у Actor, которого мы являемся наследниками, берем ее по указателю
+    UE_LOG(LogForTestingNewActor, Warning, TEXT("Actor name %s"), *GetName());
+```
 
 ## Создание функции
 ---
@@ -46,9 +184,12 @@ void ABaseGeometryActor::printTypes()
 	UE_LOG(LogTemp, Display, TEXT("Health: %f"), Health);
 	UE_LOG(LogTemp, Display, TEXT("Health: %.2f"), Health); //вывод количества чисел после запятой
 	UE_LOG(LogTemp, Display, TEXT("IsDead: %d"), IsDead);
-	UE_LOG(LogTemp, Display, TEXT("HasWeapon: %d"), static_cast<int>(HasWeapon)); //переобразование из одного тип в другой
+	UE_LOG(LogTemp, Display, TEXT("HasWeapon: %d"), static_cast<int>(HasWeapon)); //`static_cast<int>(HasWeapon)` **преобразует `bool` в `int` 
+	//Это нужно, потому что `%d` в `UE_LOG` ожидает `int`, а не `bool`.
+
 }
 ```
+
 Пкм, quick action and refactiring, create declataion and definition
 
 Вывод функции 
@@ -77,28 +218,59 @@ ElogVerbosity - уровни логирования которые сущест�
 
 `DEFINE_LOG_CATEGORY_STATIC(LogBaseGeometry, All, All)` 
 
+namespace ELogVerbosity
+
 В файле лежат все уровни логировния, которым присвоен счет от 0 до 7+ . Присвоение all = 7 . Выведутся все уровни до 7. Такие 
 
-## Тип FString. 
+```cpp
+//Если указываешь в категории логирования не все, может не показываться 
+//DEFINE_LOG_CATEGORY_STATIC(LogForTestingNewActor, Error, Error);
+
+DEFINE_LOG_CATEGORY_STATIC(LogForTestingNewActor, All, All);
+
+// Called when the game starts or when spawned
+void ATestingNewActor::BeginPlay()
+{
+    Super::BeginPlay();
+
+    UE_LOG(LogForTestingNewActor, Display, TEXT("info"));
+}
+```
+
+## Тип FString. Вывод на экран сообщения. FColor
 ---
 
 ```CPP
-	FString Name = "John Connor";
-	UE_LOG(LogBaseGeometry, Display, TEXT("Name: %s"), *Name);
+#include "Engine/Engine.h"
 
-	int WeaponsNum = 4;
-	float Health = 34.1535633;
-	bool IsDead = false;
+void ATestingNewActor::printStringTypes()
+{
+    FString Name = "JohnConnor";
+    UE_LOG(LogForTestingNewActor, Warning, TEXT("Name: %s"), *Name);
+    UE_LOG(LogTemp, Warning, TEXT("Hello Unreal!"));
 
-	FString WeaponsNumStr = "Weapons num = " + FString::FromInt(WeaponsNum); 
-	FString HealthStr = "Health = " + FString::SanitizeFloat(Health); 
-	FString IsDeadStr = "Is dead = " + FString(IsDead ? "true" : "false"); 
+    int WeaponsNum = 4;
+    float Health = 34.1535633;
+    bool IsDead = false;
 
-	FString Stat = FString::Printf(TEXT(" \n -- All Stat -- \n %s \n %s \n %s "), *WeaponsNumStr, *HealthStr, *IsDeadStr);
-	UE_LOG(LogBaseGeometry, Warning, TEXT("%s"), *Stat);
+    //преобразование к типу FString булевых значений
+    FString WeaponsNumStr = "Weapons num = " + FString::FromInt(WeaponsNum);
+    FString HealthStr = "Health = " + FString::SanitizeFloat(Health);
+    FString IsDeadStr = "Is dead = " + FString(IsDead ? "true" : "false");
 
-	GEngine->AddOnScreenDebugMessage(-1, 3.0f, FColor::Red, Name);
-	GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Green, Stat, true, FVector2D(1.5f, 1.5f));
+    //%s - модификаторы вывода чисел
+    //вывод по указателю на переменные, которые хранят преобразованных в FString числа
+    FString Stat = FString::Printf(TEXT(" \n == All Stat == \n %s \n %s \n %s"), *WeaponsNumStr, *HealthStr, *IsDeadStr);
+    UE_LOG(LogForTestingNewActor, Warning, TEXT("%s"), *Stat);
+
+    //вывод сообщения на экран
+    //-1 у сообщения нет ключа гарантировано выведется на экран,
+    //ключ позволяет сообщения с одинаковыми ключами повторно не выводится на экран
+    //3.0f время
+    //цвет и имя, следующии остаются без изменения. Так же в последнем имеется возможнсть поменять размер
+    GEngine->AddOnScreenDebugMessage(-1, 3.0f, FColor::Red, Name);
+    GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Green, Stat, true, FVector2D(1.5f, 1.5f));
+}
 ```
 
 //FromInt - получает на входе инт, а выходе возвращает string
@@ -115,71 +287,77 @@ GEngine->AddOnScreenDebugMessage
 
 ![[Pasted image 20241112225525.png]]
 
+Viewport:
+
 ![[Pasted image 20241112225518.png]]
 
-## Работа с Tick
----
+Log:
 
-Эта логика заставляет два объекта двигаться по синусу.
+LogForTestingNewActor: Warning: Name: JohnConnor
+LogTemp: Warning: Hello Unreal!
+LogForTestingNewActor: Warning:  
+ == All Stat == 
+ Weapons num = 4 
+ Health = 34.153564 
+ Is dead = false
 
-```cpp
-// Called every frame
-void ABaseGeometryActor::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
 
-	FVector CurrentLocation = GetActorLocation();
-	float time = GetWorld()->GetTimeSeconds();
-	CurrentLocation.Z = InitialLocation.Z + Amplitude * FMath::Sin(Frequency * time);
-	SetActorLocation(CurrentLocation);
-}
-```
-
-Ниже записывается начальные значения в переменную 
-
-```cpp
-void ABaseGeometryActor::BeginPlay()
-{
-	Super::BeginPlay();
-
-	InitialLocation = GetActorLocation();
-```
-
-И возможность изменений значений во вьюпорте 
-
-```cpp
-	UPROPERTY(EditAnywhere, Category = "Movement")
-	float Amplitude = 50.0f;
-
-	UPROPERTY(EditAnywhere, Category = "Movement")
-	float Frequency = 2.0f;
-```
-
-![[Pasted image 20241114073000.png]]
 ## Макрос UPROPERTY
 ---
 
 Вставляется в .h заголовок. Позволяет выводить значения для изменения во вьюпорте 
 
 ```cpp
+
+UCLASS()
+class GAMEC_API ATestingNewActor : public AActor
+{
+    GENERATED_BODY()
+
+public:
+    // Sets default values for this actor's properties
+    ATestingNewActor();
+
 protected:
-	// Called when the game starts or when spawned
-	virtual void BeginPlay() override;
+    // Called when the game starts or when spawned
+    virtual void BeginPlay() override;
 
-	UPROPERTY(EditAnywhere, Category = "Weapon")
-	int32 WeaponsNum = 4;
+    //чтобы указать что мы хотим видеть эти переменные в эдиторе класса
+    //мы могли изменять их значение, как глазик для перменной мы указываем
+    //так же тип int32 гарантирует безопасность комплияции под различные виды платформ
 
-	UPROPERTY(EditDefaultsOnly, Category = "Stat")
-	int32 KillsNum = 7;
+    //можем указать категорию
 
-	UPROPERTY(EditInstanceOnly, Category = "Health")
-	float Health = 34.1535633;
+    //спецификаторы доступа
+    //можно изменять везде как внутри так и снаружи
+    UPROPERTY(EditAnywhere, Category = "Weapon")
+    int32 WeaponsNum = 4;
 
-	UPROPERTY(EditAnywhere, Category = "Health")
-	bool IsDead = false;
+    //можно изменять только внутри
+    UPROPERTY(EditDefaultsOnly, Category = "Stat")
+    int32 KillsNum = 7;
 
-	UPROPERTY(VisibleAnywhere, Category = "Weapon")
-	bool HasWeapon = true;
+    //можно изменять только снаружи
+    UPROPERTY(EditInstanceOnly, Category = "Health")
+    float Health = 35.531;
+
+    //можно изменять везде как внутри так и снаружи
+    UPROPERTY(EditAnywhere, Category = "Health")
+    bool IsDead = false;
+
+    //виден везде, но не доступен для редактирования
+    UPROPERTY(VisibleAnywhere, Category = "Health")
+    bool HasWeapon = true;
+
+public:
+    // Called every frame
+    virtual void Tick(float DeltaTime) override;
+
+private:
+    void printTypes();
+    void printStringTypes();
+};
+
 ```
 
 
@@ -216,42 +394,59 @@ void ABaseGeometryActor::printTypes()
 
 ![[Pasted image 20241113075929.png]]
 
+
 ## Компоненты
 ---
+
+Компоненты - это объекты с определенной функциональностью, можено добавить к актору для расширения его возможностей 
+
+С точки зрения ООП данный прием называется композицией 
+
+В ооп есть 
+композиция, деления на части закрытые и открыте 
+полиморфизм на различных объекта методы могут вести себя по разному 
+наследование наследующие классы сохраняют функционал родителей 
+
 ### Static Mesh Component и Root
 
 Необходимо добавить библиотеку в заголовочный файл
 
-```cpp
-#include "Components/StaticMeshComponent.h"
-```
-
 Затем добавить что он был виден во вьюпорте. Он будет отсылаться к коду в cpp файле
 
 ```cpp
+#include "Components/StaticMeshComponent.h"
+
 public:	
 	// Sets default values for this actor's properties
 	ABaseGeometryActor();
 
-	UPROPERTY(VisibleAnywhere)
-		UStaticMeshComponent* BaseMesh;
+    //Добавление статик компонета статик меша к актору
+    //Принимает по указателю на BaseMesh
+    UPROPERTY(EditAnywhere)
+    UStaticMeshComponent* BaseMesh;
 ```
 
-![[Pasted image 20241114064326.png]]
 
 Так же в cpp файле нужно добавить код, который позволяет добавить меш. Так же здесь добавляется гизмо. Рут актора 
 
 ```cpp
-// Sets default values.
-ABaseGeometryActor::ABaseGeometryActor()
+// Sets default values
+ATestingNewActor::ATestingNewActor()
 {
- 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
-	PrimaryActorTick.bCanEverTick = true;
+    // Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
+    PrimaryActorTick.bCanEverTick = true;
 
-	BaseMesh = CreateDefaultSubobject<UStaticMeshComponent>("BaseMesh");
-	SetRootComponent(BaseMesh);
+    //Присваивание переменной BaseMesh типа UStaticMeshComponent из шаблонной функции, которое принимает имя (легкое)
+    BaseMesh = CreateDefaultSubobject<UStaticMeshComponent>("BaseMesh");
+
+    //Создает root для актора
+    //Это функция, которая принимает в себя переменную, объект который возьмет за центр 
+    SetRootComponent(BaseMesh);
+       
 }
 ```
+
+![[Pasted image 20241114064326.png]]
 
 ![[Pasted image 20241114064639.png]]
 
@@ -259,21 +454,165 @@ ABaseGeometryActor::ABaseGeometryActor()
 ---
 
 ```cpp
-	FTransform Transform = GetActorTransform();
-	FVector Location = Transform.GetLocation();
-	FRotator Rotation = Transform.Rotator();
-	FVector Scale = Transform.GetScale3D();
+// Called when the game starts or when spawned
+void ATestingNewActor::BeginPlay()
+{
+    Super::BeginPlay();
 
-	UE_LOG(LogBaseGeometry, Warning, TEXT("Actor name %s"), *GetName());
-	UE_LOG(LogBaseGeometry, Warning, TEXT("Transform %s"), *Transform.ToString());UE_LOG(LogBaseGeometry, Warning, TEXT("Transform %s"), *Transform.ToString());
-	UE_LOG(LogBaseGeometry, Warning, TEXT("Location %s"), *Location.ToString());
-	UE_LOG(LogBaseGeometry, Warning, TEXT("Rotation %s"), *Rotation.ToString());
-	UE_LOG(LogBaseGeometry, Warning, TEXT("Scale %s"), *Scale.ToString());
+    //создаем переменную типа FTransform и присваиваем туда возвращаемое значение функции GetActorTransform()
+    FTransform Transform = GetActorTransform();
 
-	UE_LOG(LogBaseGeometry, Error, TEXT("Human transform %s"), *Transform.ToHumanReadableString());
+    //Присваиваение основных XYZ переменных
+    FVector Location = Transform.GetLocation();
+    FRotator Rotator = Transform.Rotator();
+    FVector Scale = Transform.GetScale3D();
+
+    //название актора 
+    UE_LOG(LogForTestingNewActor, Warning, TEXT("Actor name is %s"), *GetName());
+
+    //Transform
+    UE_LOG(LogForTestingNewActor, Warning, TEXT("Transform %s"), *Transform.ToString());
+
+    //XYZ
+    UE_LOG(LogForTestingNewActor, Warning, TEXT("Location %s"), *Location.ToString());
+    UE_LOG(LogForTestingNewActor, Warning, TEXT("Rotator %s"), *Rotator.ToString());
+    UE_LOG(LogForTestingNewActor, Warning, TEXT("Scale %s"), *Scale.ToString());
+
+    //Более информативный и подробный показ Transform 
+    UE_LOG(LogForTestingNewActor, Error, TEXT("Human transform %s"), *Transform.ToHumanReadableString());
+}
 ```
 
 ![[Pasted image 20241114070425.png]]
+
+LogForTestingNewActor: Warning: Actor name is TestingNewActor_1
+LogForTestingNewActor: Warning: Transform 119.741516,-222.324280,77.975342|0.000000,0.000000,0.000000|1.000000,1.000000,1.000000
+LogForTestingNewActor: Warning: Location X=119.742 Y=-222.324 Z=77.975
+LogForTestingNewActor: Warning: Rotator P=0.000000 Y=0.000000 R=0.000000
+LogForTestingNewActor: Warning: Scale X=1.000 Y=1.000 Z=1.000
+LogForTestingNewActor: Error: Human transform Rotation: Pitch 0.000000 Yaw 0.000000 Roll 0.000000
+Translation: 119.741516 -222.324280 77.975342
+Scale3D: 1.000000 1.000000 1.000000
+
+LogForTestingNewActor: Warning: Actor name is TestingNewActor_2
+LogForTestingNewActor: Warning: Transform 91.476807,102.816849,171.065277|0.000000,0.000000,0.000000|1.000000,1.000000,1.000000
+LogForTestingNewActor: Warning: Location X=91.477 Y=102.817 Z=171.065
+LogForTestingNewActor: Warning: Rotator P=0.000000 Y=0.000000 R=0.000000
+LogForTestingNewActor: Warning: Scale X=1.000 Y=1.000 Z=1.000
+LogForTestingNewActor: Error: Human transform Rotation: Pitch 0.000000 Yaw 0.000000 Roll 0.000000
+Translation: 91.476807 102.816849 171.065277
+Scale3D: 1.000000 1.000000 1.000000
+
+## Работа с Tick
+---
+Отключение работы всего тика 
+
+```cpp
+// Sets default values
+//конструктор
+AGeometryHubActor::AGeometryHubActor()
+{
+ 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
+	PrimaryActorTick.bCanEverTick = true;
+
+}
+```
+
+Эта логика заставляет два объекта двигаться по синусу.
+
+New git ignore file
+rules of naming variables 
+Work on libraries STL
+
+Timer, Event Editor, Constructor Script, Matrerial, USTRUCT, ENUM, Tick, FTransform
+
+
+
+.h
+
+```cpp 
+// Fill out your copyright notice in the Description page of Project Settings.
+
+#pragma once
+
+#include "CoreMinimal.h"
+#include "GameFramework/Actor.h"
+#include "Components/StaticMeshComponent.h"
+#include "TestingNewActor.generated.h"
+
+UCLASS()
+class GAMEC_API ATestingNewActor : public AActor
+{
+    GENERATED_BODY()
+
+public:
+    // Sets default values for this actor's properties
+    ATestingNewActor();
+
+    //Добавление статик компонета статик меша к актору
+    //Принимает по указателю на BaseMesh
+    UPROPERTY(EditAnywhere)
+    UStaticMeshComponent* BaseMesh;
+
+protected:
+    // Called when the game starts or when spawned
+    virtual void BeginPlay() override;
+
+    //Две переменные, отвечающие за амплитуду и частоту колебаний для логики движения объектов 
+    UPROPERTY(EditAnywhere, Category = "Movement")
+    float Amplitude = 50.0f;
+
+    UPROPERTY(EditAnywhere, Category = "Movement")
+    float Frequency = 2.0f;
+
+public:
+    // Called every frame
+    virtual void
+    Tick(float DeltaTime) override;
+
+private:
+    //Кешшированная переменная, которая содержит начальное положение актора
+    FVector InitialLocation;
+};
+```
+
+.cpp
+
+```cpp
+// Fill out your copyright notice in the Description page of Project Settings.
+
+#include "TestingNewActor.h"
+#include "Engine/Engine.h"
+
+// Called when the game starts or when spawned
+void ATestingNewActor::BeginPlay()
+{
+    Super::BeginPlay();
+
+    //доп функция получения локации актора
+    //так же можно сделать через Transform.GetLocation()
+    //Присваиваем при создании запуске игры 
+    InitialLocation = GetActorLocation();
+
+}
+
+// Called every frame
+void ATestingNewActor::Tick(float DeltaTime)
+{
+    Super::Tick(DeltaTime);
+
+    //Работа в Tick
+    //В переменную CurrentLocation, текующей позиции. типа FVector присваиваем 
+    FVector CurrentLocation = GetActorLocation();
+    float time = GetWorld()->GetTimeSeconds();
+    CurrentLocation.Z = InitialLocation.Z + Amplitude * FMath::Sin(Frequency * time);
+    SetActorLocation(CurrentLocation);
+}
+```
+
+
+![[Pasted image 20241114073000.png]]
+
 
 ## ENUM
 ---
@@ -281,11 +620,14 @@ ABaseGeometryActor::ABaseGeometryActor()
 В заголовочном файле указываем состояния которые используются. Для них всегда используется uint8 и так же в начале названия указывается буква E... 
 
 ```cpp
+//Класс ENUM отвечающий за тип движения
+//UENUM это макрос который расширяет возможности enum и позволяет выводить его в едитор
+//Все enum должны начинать с заглавной буквы E , EMovementType
 UENUM(BlueprintType)
-enum class EMovementType : uint8
+enum class EMovementTypeTestingActor : uint8
 {
-	Sin,
-	Static
+    SIN,
+    STATIC
 };
 ```
 
@@ -330,20 +672,69 @@ USTRUCT служит для объединия в группы. У структ�
 Позволяет передавать переменные не по отдельности, а целым объектом
 
 ```cpp
+// Fill out your copyright notice in the Description page of Project Settings.
+
+#pragma once
+
+#include "CoreMinimal.h"
+#include "GameFramework/Actor.h"
+#include "Components/StaticMeshComponent.h"
+#include "TestingNewActor.generated.h"
+
+//Все типы структур начинаются с F
+//структура тот же класс, но все поля public
+//структура при наследовании имеет все поля как public
+//можно объединять переменные для их удобной группировки
 USTRUCT(BlueprintType)
-struct FGeometryData
+struct FGeometrydataTestingActor
 {
-	GENERATED_USTRUCT_BODY()
+    GENERATED_USTRUCT_BODY()
 
-	UPROPERTY(EditAnywhere, Category = "Movement")
-	float Amplitude = 50.0f;
+    //Две переменные, отвечающие за амплитуду и частоту колебаний для логики движения объектов
+    UPROPERTY(EditAnywhere, Category = "Movement")
+    float Amplitude = 50.0f;
 
-	UPROPERTY(EditAnywhere, Category = "Movement")
-	float Frequency = 2.0f;
+    UPROPERTY(EditAnywhere, Category = "Movement")
+    float Frequency = 2.0f;
 
-	UPROPERTY(EditAnywhere, Category = "Movement")
-	EMovementType MoveType = EMovementType::Static;
+    //Создание переменной MoveType типа enum MovementType
+    //который содержит переходные значия STATIC, SIN
+    UPROPERTY(EditAnywhere, Category = "Movement")
+    EMovementTypeTestingActor MoveType = EMovementTypeTestingActor::STATIC;
 };
+
+UCLASS()
+class GAMEC_API ATestingNewActor : public AActor
+{
+    GENERATED_BODY()
+
+public:
+    // Sets default values for this actor's properties
+    ATestingNewActor();
+
+    //Добавление статик компонета статик меша к актору
+    //Принимает по указателю на BaseMesh
+    UPROPERTY(EditAnywhere)
+    UStaticMeshComponent* BaseMesh;
+
+protected:
+    // Called when the game starts or when spawned
+    virtual void BeginPlay() override;
+
+    //переменная хранящая в себе структуру
+    //В ней хранятся для вывода другие переменные 
+    UPROPERTY(EditAnywhere, Category = "GeometryData")
+    FGeometrydataTestingActor GeometryData;
+
+public:
+    // Called every frame
+    virtual void
+    Tick(float DeltaTime) override;
+
+private:
+
+};
+
 ```
 
 Так же стоит отметить, что при переносе из в структуры могут теряться связи. Так что необходимо обновить пути для каждой переменной 
@@ -382,17 +773,51 @@ switch (GeometryData.MoveType)
 Создание функции с ссылкой на параметр в материале, для изменения.
 
 ```cpp
-	void SetColor(const FLinearColor& Color);
+USTRUCT(BlueprintType)
+struct FGeometrydataTestingActor
+{
+    GENERATED_USTRUCT_BODY()
+
+	//Еще переменные 
+
+    //Цвет меша, задание ему цвета через эдитор и установка цвета по умолчанию 
+    UPROPERTY(EditAnywhere, Category = "Design")
+    FLinearColor Color = FLinearColor::Black;
+};
+
+UCLASS()
+class GAMEC_API ATestingNewActor : public AActor
+{
+    GENERATED_BODY()
+    //код
+    
+private:
+    void SetColor(const FLinearColor& Color);
+};
 ```
 
 ```cpp
-void ABaseGeometryActor::SetColor(const FLinearColor& Color)
+// Called when the game starts or when spawned
+void ATestingNewActor::BeginPlay()
 {
-	UMaterialInstanceDynamic* DynMaterial = BaseMesh->CreateAndSetMaterialInstanceDynamic(0);
-	if (DynMaterial)
-	{
-		DynMaterial->SetVectorParameterValue("Color", Color);
-	}
+    Super::BeginPlay();
+
+    SetColor(GeometryData.Color = FLinearColor::Blue);
+}
+
+void ATestingNewActor::SetColor(const FLinearColor& Color)
+{
+    //Создание материала
+    //В указатель
+    UMaterialInstanceDynamic* DynMaterial = BaseMesh->CreateAndSetMaterialInstanceDynamic(0);
+    if (DynMaterial)
+    {
+        //У материала выставляем цвет в его параметре Color
+        //при старте цвет изменить на желтый, если параметр совпадает он сам изменит ему цвет
+        //выбирать конкретный материал не нужно, он реагирует только на параметры
+        //FLinearColor - 32 битный цвет, FColor - 8бит
+        DynMaterial->SetVectorParameterValue("Color", Color);
+    }
 }
 ```
 
@@ -407,6 +832,88 @@ DynMaterial->SetVectorParameterValue("Color",FLinearColor::Yellow);
 	FLinearColor Color = FLinearColor::Black;
 ```
 
+## Construction Script 
+
+```cpp
+UCLASS()
+class GAMEC_API ATestingNewActor : public AActor
+{
+    GENERATED_BODY()
+
+public:
+    // Sets default values for this actor's properties
+    ATestingNewActor();
+
+protected:
+    // Called when the game starts or when spawned
+    virtual void BeginPlay() override;
+
+    //функция которая срабатывает при создании 
+    //Аналог Construction Script 
+    virtual void OnConstruction(const FTransform& Transform) override;
+```
+
+```cpp
+void ATestingNewActor::OnConstruction(const FTransform& Transform)
+{
+    Super::OnConstruction(Transform);
+
+	//вызов функций
+    SetColor(GeometryData.Color = FLinearColor::Black);
+}
+```
+## Editor Event
+
+```cpp
+UCLASS()
+class GAMEC_API ATestingNewActor : public AActor
+{
+    GENERATED_BODY()
+
+public:
+    // Sets default values for this actor's properties
+    ATestingNewActor();
+
+    //Добавление статик компонета статик меша к актору
+    //Принимает по указателю на BaseMesh
+    UPROPERTY(EditAnywhere)
+    UStaticMeshComponent* BaseMesh;
+
+protected:
+    // Called when the game starts or when spawned
+    virtual void BeginPlay() override;
+
+
+    //Евент, если изменяется что то в едиторе то запускается этот евент
+    //В данном случае к моему цвету применяется другой цвет
+    virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
+```
+
+```cpp
+
+void ATestingNewActor::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
+{
+    Super::PostEditChangeProperty(PropertyChangedEvent);
+
+    //// 2. Устанавливаем цвет меша в редакторе.
+    //UMaterialInstanceDynamic* DynamicMaterial = UMaterialInstanceDynamic::Create(BaseMesh->GetMaterial(0), this);
+    //if (DynamicMaterial)
+    //{
+    //    DynamicMaterial->SetVectorParameterValue(TEXT("Color"), FLinearColor::Yellow); // "Color" - имя параметра в material
+    //    BaseMesh->SetMaterial(0, DynamicMaterial);
+    //}
+
+    UMaterialInstanceDynamic* DynMaterial = BaseMesh->CreateAndSetMaterialInstanceDynamic(0);
+    if (DynMaterial)
+    {
+        //У материала выставляем цвет в его параметре Color
+        //при старте цвет изменить на желтый, если параметр совпадает он сам изменит ему цвет
+        //выбирать конкретный материал не нужно, он реагирует только на параметры
+        //FLinearColor - 32 битный цвет, FColor - 8бит
+        DynMaterial->SetVectorParameterValue("Color", FLinearColor::Yellow);
+    }
+}
+```
 ## Timer
 ---
 
@@ -414,34 +921,80 @@ DynMaterial->SetVectorParameterValue("Color",FLinearColor::Yellow);
 
 Обозначаем переменные отвечающую за частоту срабатывания 
 
+Создаем дискриптор Timer Handle, будет иметь доступ к нему. Сможем поставить его на паузу или остановить. Так же создаем счетчик и максимальное значение. Эти значения потом будут сравниваться 
+
 .h
 
 ```cpp
-USTRUCT 
+USTRUCT(BlueprintType)
+struct FGeometrydataTestingActor
+{
+    GENERATED_USTRUCT_BODY()
+    
+    //Таймер 
+    UPROPERTY(EditAnywhere, Category = "Design")
+    float TimerRate = 3.0f;
+};
 
-	UPROPERTY(EditAnywhere, Category = "Design")
-	float TimerRate = 3.0f;
-```
+public:
+    // Called every frame
+    virtual void
+    Tick(float DeltaTime) override;
 
-Создаем дискриптор Timer Handle, будет иметь доступ к нему. Сможем поставить его на паузу или остановить. Так же создаем счетчик и максимальное значение. Эти значения потом будут сравниваться 
-
-```cpp
 private:
-	FTimerHandle TimerHandle;
+    //Создание перменной класса таймера
+    FTimerHandle TimerHandle;
 
-	const int32 MaxTimerCount = 5;
-	int32 TimerCount = 0;
+    //количетсво раз сколько сработать до конца 
+    const int32 MaxTimerCount = 5;
+
+    //счетчик срабатывания 
+    int32 TimerCount = 0;
+
+	//Функция во время работы таймера на каждый тик 
+	void OnTimerFired();
+};
+
 ```
 
 .cpp
 
 ```cpp
 #include "TimerManager.h"
+
+// Called when the game starts or when spawned
+void ATestingNewActor::BeginPlay()
+{
+    Super::BeginPlay();
+
+    //вызов функции установки таймера с передачей значений
+    //переданная функция OnTimerFired это функция которая работает во время таймера 
+    //true - таймер срабатает один раз и остановится 
+    GetWorldTimerManager().SetTimer(TimerHandle, this, &ATestingNewActor::OnTimerFired, GeometryData.TimerRate, true);
+
+}
+
+void ATestingNewActor::OnTimerFired()
+{
+    if (++TimerCount <= MaxTimerCount)
+    {
+        const FLinearColor NewColor = FLinearColor::MakeRandomColor();
+
+        //TimerCount передается по значению, потому что спецификатор %i требует значение типа int.
+        //*NewColor.ToString() передается как указатель, потому что спецификатор % s требует указатель на строку типа const TCHAR *.
+        UE_LOG(LogForTestingNewActor, Display, TEXT("TimerCount: %i, Color to set  up: %s"), TimerCount, *NewColor.ToString());
+        SetColor(NewColor);
+    }
+    else
+    {
+        UE_LOG(LogForTestingNewActor, Display, TEXT("Timer has been stopped!"));
+
+        //остановка таймера, какой таймер остановить
+        GetWorldTimerManager().ClearTimer(TimerHandle);
+    }
+}
 ```
 
-begin play
-```cpp
-	GetWorldTimerManager().SetTimer(TimerHandle, this, &ABaseGeometryActor::OnTimerFired, GeometryData.TimerRate, true);
 ```
 
 Вызываем таймер
@@ -1165,94 +1718,8 @@ AllowShortIfStatementsOnASingleLine: true
 
 ## Gitignore
 ---
-```
-.vs
-*.sln
-DerivedDataCache/
-Intermediate/
-Saved/
-Binaries/
-Build/
-```
+[[Gitignore]]
 
-https://github.com/github/gitignore/blob/main/UnrealEngine.gitignore
-
-```
-# Visual Studio 2015 user specific files
-.vs/
-
-# Compiled Object files
-*.slo
-*.lo
-*.o
-*.obj
-
-# Precompiled Headers
-*.gch
-*.pch
-
-# Compiled Dynamic libraries
-*.so
-*.dylib
-*.dll
-
-# Fortran module files
-*.mod
-
-# Compiled Static libraries
-*.lai
-*.la
-*.a
-*.lib
-
-# Executables
-*.exe
-*.out
-*.app
-*.ipa
-
-# These project files can be generated by the engine
-*.xcodeproj
-*.xcworkspace
-*.sln
-*.suo
-*.opensdf
-*.sdf
-*.VC.db
-*.VC.opendb
-
-# Precompiled Assets
-SourceArt/**/*.png
-SourceArt/**/*.tga
-
-# Binary Files
-Binaries/*
-Plugins/**/Binaries/*
-
-# Builds
-Build/*
-
-# Whitelist PakBlacklist-<BuildConfiguration>.txt files
-!Build/*/
-Build/*/**
-!Build/*/PakBlacklist*.txt
-
-# Don't ignore icon files in Build
-!Build/**/*.ico
-
-# Built data for maps
-*_BuiltData.uasset
-
-# Configuration files generated by the Editor
-Saved/*
-
-# Compiled source files for the engine to use
-Intermediate/*
-Plugins/**/Intermediate/*
-
-# Cache files for the editor to use
-DerivedDataCache/*
-```
 
 ## ACharacter
 ---

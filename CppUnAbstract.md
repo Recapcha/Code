@@ -6,7 +6,8 @@ alt + t hot key
 >    - [[CppUnAbstract#Структура класса |Структура класса ]]
 >        - [[CppUnAbstract#Super|Super]]
 >    - [[CppUnAbstract#Горячие клавиши|Горячие клавиши]]
->    - [[CppUnAbstract#f12 провалится в класс и посмотреть его исходный код|f12 провалится в класс и посмотреть его исходный код]]
+>        - [[CppUnAbstract#f12 провалится в класс и посмотреть его исходный код|f12 провалится в класс и посмотреть его исходный код]]
+>        - [[CppUnAbstract#Вылететь в управление, во время игры. Shift + F1|Вылететь в управление, во время игры. Shift + F1]]
 >    - [[CppUnAbstract#Логирование. Макрос в UE|Логирование. Макрос в UE]]
 >    - [[CppUnAbstract#Создание функции|Создание функции]]
 >    - [[CppUnAbstract#Собственная категория логирования|Собственная категория логирования]]
@@ -20,13 +21,34 @@ alt + t hot key
 >    - [[CppUnAbstract#ENUM|ENUM]]
 >    - [[CppUnAbstract#USTRUCT|USTRUCT]]
 >    - [[CppUnAbstract#Material|Material]]
+>    - [[CppUnAbstract#Construction Script |Construction Script ]]
+>    - [[CppUnAbstract#Editor Event|Editor Event]]
 >    - [[CppUnAbstract#Timer|Timer]]
 >    - [[CppUnAbstract#Spawn|Spawn]]
->    - [[CppUnAbstract#UFUNCTION|UFUNCTION]]
->    - [[CppUnAbstract#Делегаты. |Делегаты. ]]
->    - [[CppUnAbstract#Pawn. GameModeBase|Pawn. GameModeBase]]
+>    - [[CppUnAbstract#UFUNCTION, вызов функции в блюпринт графе |UFUNCTION, вызов функции в блюпринт графе ]]
+>    - [[CppUnAbstract#Делегаты. Разрушение объекта. Destroy|Делегаты. Разрушение объекта. Destroy]]
+>    - [[CppUnAbstract#GameModeBase|GameModeBase]]
+>        - [[CppUnAbstract#Gameplay Framework|Gameplay Framework]]
+>        - [[CppUnAbstract#Gamemode|Gamemode]]
+>    - [[CppUnAbstract#Mapping, Action Mapping, Axis Mapping|Mapping, Action Mapping, Axis Mapping]]
+>    - [[CppUnAbstract#Pawn|Pawn]]
 >    - [[CppUnAbstract#Player Controller|Player Controller]]
+>    - [[CppUnAbstract#GetAllActorsOfClass|GetAllActorsOfClass]]
+>    - [[CppUnAbstract#Обзор основных классов Unreal |Обзор основных классов Unreal ]]
 >    - [[CppUnAbstract#Modules, Targets, UnrealBuildTool|Modules, Targets, UnrealBuildTool]]
+>        - [[CppUnAbstract#GameName.Target.cs. UnrealBuildTool|GameName.Target.cs. UnrealBuildTool]]
+>        - [[CppUnAbstract#Module|Module]]
+>    - [[CppUnAbstract#GameName.h  | GameName.cpp|GameName.h  | GameName.cpp]]
+>        - [[CppUnAbstract#.uproject |.uproject ]]
+>        - [[CppUnAbstract#Forward Declaration. Libraries. Precomiped headers. IWYU подход|Forward Declaration. Libraries. Precomiped headers. IWYU подход]]
+>        - [[CppUnAbstract#Поиск по документации |Поиск по документации ]]
+>        - [[CppUnAbstract#GameNameEditor.Target.cs.|GameNameEditor.Target.cs.]]
+>    - [[CppUnAbstract#Макросы. Генерация кода |Макросы. Генерация кода ]]
+>        - [[CppUnAbstract#Генерация кода|Генерация кода]]
+>        - [[CppUnAbstract#Шаблоны, templates|Шаблоны, templates]]
+>        - [[CppUnAbstract#Как происходит билд проекта |Как происходит билд проекта ]]
+>        - [[CppUnAbstract#Макрос |Макрос ]]
+>        - [[CppUnAbstract#Макрос. NAMEGAME_API|Макрос. NAMEGAME_API]]
 >    - [[CppUnAbstract#Garbage Collector|Garbage Collector]]
 >    - [[CppUnAbstract#Clang Format |Clang Format ]]
 >    - [[CppUnAbstract#Gitignore|Gitignore]]
@@ -42,7 +64,6 @@ alt + t hot key
 >    - [[CppUnAbstract#TakeDamage|TakeDamage]]
 >    - [[CppUnAbstract#Разное|Разное]]
 >    - [[CppUnAbstract#- склейка двух элементов |- склейка двух элементов ]]
-
 
 
 ## Создание с++ актора в UE
@@ -62,7 +83,11 @@ AActor::BeginPlay();
 
 ## Горячие клавиши
 
-## f12 провалится в класс и посмотреть его исходный код
+![[Pasted image 20250513201302.png]]
+
+https://www.unrealengine.com/en-US/tech-blog/designer-s-guide-to-unreal-engine-keyboard-shortcuts
+
+### f12 провалится в класс и посмотреть его исходный код
 
 При нажатии на текстовый документ мы может найти его еще раз 
 ![[Pasted image 20250510185320.png]]
@@ -72,11 +97,19 @@ AActor::BeginPlay();
 ![[Pasted image 20250510184706.png]]
 
 ![[Pasted image 20250510185354.png]]
+
+### Вылететь в управление, во время игры. Shift + F1
+
+![[Pasted image 20250513175029.png]]
+
+
 ## Логирование. Макрос в UE
 ---
 
 Первый параметр это категория логирования, доп строчка, по которой мы можем фильтровать логи 
 Уровень логирования, можем выдавать обычные сообщения, предупреждения или ошибка. 
+
+Если где то при логике использовать как error затем при сборке unit тестов это не пройдет, так как один из логов вывел ошибку, так что надо быть с этим аккуратнее 
 
 ```cpp
 // Called when the game starts or when spawned
@@ -240,6 +273,14 @@ void ATestingNewActor::BeginPlay()
 ## Тип FString. Вывод на экран сообщения. FColor
 ---
 
+Спецификаторы формата 
+printf, Print formatted data to stdout
+
+https://cplusplus.com/reference/cstdio/printf/
+
+документация по FString
+https://dev.epicgames.com/documentation/en-us/unreal-engine/fstring-in-unreal-engine?application_version=5.4
+
 ```CPP
 #include "Engine/Engine.h"
 
@@ -304,6 +345,7 @@ LogForTestingNewActor: Warning:
 
 ## Макрос UPROPERTY
 ---
+https://dev.epicgames.com/documentation/en-us/unreal-engine/unreal-engine-uproperties?application_version=5.4
 
 Вставляется в .h заголовок. Позволяет выводить значения для изменения во вьюпорте 
 
@@ -397,6 +439,7 @@ void ABaseGeometryActor::printTypes()
 
 ## Компоненты
 ---
+https://dev.epicgames.com/documentation/en-us/unreal-engine/components-in-unreal-engine?application_version=5.4
 
 Компоненты - это объекты с определенной функциональностью, можено добавить к актору для расширения его возможностей 
 
@@ -602,11 +645,14 @@ void ATestingNewActor::Tick(float DeltaTime)
     Super::Tick(DeltaTime);
 
     //Работа в Tick
-    //В переменную CurrentLocation, текующей позиции. типа FVector присваиваем 
-    FVector CurrentLocation = GetActorLocation();
-    float time = GetWorld()->GetTimeSeconds();
-    CurrentLocation.Z = InitialLocation.Z + Amplitude * FMath::Sin(Frequency * time);
-    SetActorLocation(CurrentLocation);
+	//В переменную CurrentLocation, текующей позиции. типа FVector присваиваем
+	FVector CurrentLocation = GetActorLocation();
+	if (GetWorld())
+	{
+		float Time = GetWorld()->GetTimeSeconds();
+		CurrentLocation.Z = InitialLocation.Z + GeometryData.Amplitude * FMath::Sin(GeometryData.Frequency * Time);
+		SetActorLocation(CurrentLocation);
+	}
 }
 ```
 
@@ -758,6 +804,8 @@ switch (GeometryData.MoveType)
 ## Material
 ---
 
+https://dev.epicgames.com/documentation/en-us/unreal-engine/unreal-engine-materials?application_version=5.4
+
 Создаются обычным способом материалы. Затем в них создаются параметры. В коде можно взять материал и управлять параметров в этом материале. Важен не название материала, а параметр в нем. 
 
 Если будут два разных материала, но одинаковые параметры внутри, код будет работать
@@ -807,16 +855,19 @@ void ATestingNewActor::BeginPlay()
 
 void ATestingNewActor::SetColor(const FLinearColor& Color)
 {
-    //Создание материала
-    //В указатель
-    UMaterialInstanceDynamic* DynMaterial = BaseMesh->CreateAndSetMaterialInstanceDynamic(0);
-    if (DynMaterial)
+    if (!BaseMesh)
     {
-        //У материала выставляем цвет в его параметре Color
-        //при старте цвет изменить на желтый, если параметр совпадает он сам изменит ему цвет
-        //выбирать конкретный материал не нужно, он реагирует только на параметры
-        //FLinearColor - 32 битный цвет, FColor - 8бит
-        DynMaterial->SetVectorParameterValue("Color", Color);
+        //Создание материала
+        //В указатель
+        UMaterialInstanceDynamic* DynMaterial = BaseMesh->CreateAndSetMaterialInstanceDynamic(0);
+        if (DynMaterial)
+        {
+            //У материала выставляем цвет в его параметре Color
+            //при старте цвет изменить на желтый, если параметр совпадает он сам изменит ему цвет
+            //выбирать конкретный материал не нужно, он реагирует только на параметры
+            //FLinearColor - 32 битный цвет, FColor - 8бит
+            DynMaterial->SetVectorParameterValue("Color", Color);
+        }
     }
 }
 ```
@@ -916,6 +967,8 @@ void ATestingNewActor::PostEditChangeProperty(FPropertyChangedEvent& PropertyCha
 ```
 ## Timer
 ---
+
+https://dev.epicgames.com/documentation/en-us/unreal-engine/gameplay-timers-in-unreal-engine?application_version=5.4
 
 Таймер позволяет установить время и на каждый тик будет происходить действие 
 
@@ -1042,7 +1095,223 @@ void ABaseGeometryActor::OnTimerFired()
 ## Spawn
 ---
 
+Spawn documention
+https://dev.epicgames.com/documentation/en-us/unreal-engine/spawning-actors-in-unreal-engine?application_version=5.4
+
+TArray documentation
+file:///O:/UnrealProject/UE_C++_And_Base/UE_C++_And_Base/2.%20Основы%20C++%20в%20Unreal%20Engine/10.2%20Документация%20по%20TArray.html
+
+TSubclassOf documentation
+https://dev.epicgames.com/documentation/en-us/unreal-engine/typed-object-pointer-properties-in-unreal-engine?application_version=5.4
+
 ![[Pasted image 20241130015955.png]]
+
+.h
+
+```c++
+// Fill out your copyright notice in the Description page of Project Settings.
+
+#pragma once
+
+#include "CoreMinimal.h"
+#include "GameFramework/Actor.h"
+#include "TestingNewActor.h"
+#include "GeometryHubTestingActor.generated.h"
+
+//настройки для изменения данных для каждого спавн элемента
+USTRUCT(BlueprintType)
+struct FGeometryPayloadTestingActor
+{
+    GENERATED_USTRUCT_BODY()
+
+    UPROPERTY(EditAnywhere)
+    TSubclassOf<ATestingNewActor> GeometryClass;
+
+    UPROPERTY(EditAnywhere)
+    FGeometrydataTestingActor Data;
+
+    UPROPERTY(EditAnywhere)
+    FTransform InitialTransform;
+};
+
+UCLASS() class GAMEC_API AGeometryHubTestingActor : public AActor
+{
+    GENERATED_BODY()
+
+public:
+    // Sets default values for this actor's properties
+    AGeometryHubTestingActor();
+
+protected:
+    // Called when the game starts or when spawned
+    virtual void BeginPlay() override;
+
+    //TSubclassOf отфильтрует все классы движка и property можно будет
+    //установить только сам класс или который от него наследуется
+    //именно GeometryClass выбранный тут будет спавниться
+    UPROPERTY(EditAnywhere)
+    TSubclassOf<ATestingNewActor> GeometryClass;
+
+    UPROPERTY(EditAnywhere)
+    UClass* Class;
+
+    UPROPERTY(EditAnywhere)
+    ATestingNewActor* GeometryObject;
+
+    //Тип массив объектов 
+    //Принимает тип объектов в массиве 
+    UPROPERTY(EditAnywhere)
+    TArray<FGeometryPayloadTestingActor> GeometryPayloads;
+
+public:
+    // Called every frame
+    virtual void Tick(float DeltaTime) override;
+};
+
+```
+
+.cpp
+
+```cpp
+// Fill out your copyright notice in the Description page of Project Settings.
+
+#include "GeometryHubTestingActor.h"
+#include "Engine/World.h"
+
+// Sets default values
+AGeometryHubTestingActor::AGeometryHubTestingActor()
+{
+    // Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
+    PrimaryActorTick.bCanEverTick = true;
+}
+
+// Called when the game starts or when spawned
+void AGeometryHubTestingActor::BeginPlay()
+{
+    Super::BeginPlay();
+
+    //указатель на мир игры, в нем находится функция спавна
+    //GetWorld() - возвращает указатель на глобальный объект мира игры
+    UWorld* World = GetWorld();
+    if (World)
+    {
+        for (int32 i = 0; i < 10; i++)
+        {
+            //трансформация актора
+            //поворот, положение, размер
+            const FTransform GeometryTransform = FTransform(FRotator::ZeroRotator, FVector(0.0f, 300.0f * i, 300.0f));
+
+            //спавн объекта
+            //в параметрах спавна он может получать объект спавна
+            //локацию, ротацию и доп данные
+            //World->SpawnActor(GeometryClass);
+
+            //создаем приведении типов, что могли сразу иметь указатель на объект нашего типа
+            //то есть не надо приводить каст от AActor к ATestingNewActor
+            //так же передаем трансформацию актора
+            ATestingNewActor* Geometry = World->SpawnActor<ATestingNewActor>(GeometryClass, GeometryTransform);
+
+            //проверка на валидность, можем ли мы вообще взять объект Geometry. иначе будет ошибка
+            if (Geometry)
+            {
+                FGeometrydataTestingActor Data;
+                Data.MoveType = FMath::RandBool() ? EMovementTypeTestingActor::STATIC : EMovementTypeTestingActor::SIN;
+                Geometry->SetGeometryData(Data);
+            }
+        }
+
+        //для 10 элементов
+        for (int32 i = 0; i < 10; i++)
+        {
+            //настройки положения по умолчанию
+            const FTransform GeometryTransform = FTransform(FRotator::ZeroRotator, FVector(0.0f, 300.0f * i, 700.0f));
+
+            //SpawnActorDeferred
+            //этот спавн отличается тем что при создании актора, будет вызван только констурктор,
+            //а бегин плей не будет вызван
+            ATestingNewActor* Geometry = World->SpawnActorDeferred<ATestingNewActor>(GeometryClass, GeometryTransform);
+
+            if (Geometry)
+            {
+                FGeometrydataTestingActor Data;
+                Data.Color = FLinearColor::MakeRandomColor();
+                Geometry->SetGeometryData(Data);
+
+                //ручной запуск бегин плей
+                Geometry->FinishSpawning(GeometryTransform);
+            }
+        }
+
+        //для всех объектов находящихся в массиве GeometryPayloads
+        //разделяет объявление переменной (const FGeometryPayloadTestingActor Payload) цикла
+        //от коллекции GeometryPayloads (диапазона), по которой будет происходить итерация
+
+        for (const FGeometryPayloadTestingActor Payload : GeometryPayloads)
+        {
+            //World->SpawnActorDeferred<ATestingNewActor>(...)
+            //
+            //World : Это указатель на текущий игровой мир(UWorld*).
+            //Обычно получается через GetWorld().
+            //Мир отвечает за управление всеми акторами на уровне.
+            //
+            //SpawnActorDeferred : Это специальная функция для спавна(создания) актора,
+            //которая откладывает некоторые этапы его инициализации.
+            //В отличие от SpawnActor, SpawnActorDeferred не вызывает сразу BeginPlay()
+            //и другие функции инициализации, связанные с полным появлением актора в мире.
+            //
+            //<ATestingNewActor> : Это шаблонный параметр, указывающий ожидаемый тип возвращаемого значения.
+            //То есть, мы говорим, что хотим заспавнить актора, который будет(или будет совместим с)
+            //типом ATestingNewActor, и мы хотим получить указатель именно этого типа.
+            //
+            //Payload.GeometryClass : Это аргумент, передающий класс актора, который нужно создать.
+            //Он должен быть типа TSubclassOf<AActor>(или более конкретного, например TSubclassOf<ATestingNewActor>).
+            //Это UClass * который был выбран в Payload.Это позволяет спавнить акторы разных классов,
+            //если Payload.GeometryClass может содержать разные классы.
+            //
+            //Payload.InitialTransform : Это аргумент, передающий начальную трансформацию(положение, поворот, масштаб)
+            //для создаваемого актора.Тип FTransform.ATestingNewActor* Geometry = ... :
+            //Результат SpawnActorDeferred присваивается указателю Geometry типа ATestingNewActor*.
+
+            //Зачем нужен SpawnActorDeferred ?
+            //Он используется,когда тебе нужно настроить актора(установить его свойства,
+            //вызвать какие - то специфические функции инициализации) до того,
+            //как он полностью появится в мире и начнет свою “жизнь” (до вызова BeginPlay()).
+            //Если бы ты использовал обычный SpawnActor,
+            //то BeginPlay() был бы вызван сразу после конструктора,
+            //и у тебя не было бы возможности что - то настроить перед этим.
+
+            ATestingNewActor* Geometry = World->SpawnActorDeferred<ATestingNewActor>(Payload.GeometryClass, Payload.InitialTransform);
+
+            if (Geometry)
+            {
+                //Мы передаем в этот метод какие-то данные из нашей структуры Payload.
+                Geometry->SetGeometryData(Payload.Data);
+
+                //Именно здесь, между SpawnActorDeferred и FinishSpawning,
+                //ты можешь безопасно вызывать сеттеры и другие функции для настройки своего актора.
+                //На этом этапе BeginPlay() еще не был вызван.
+
+                //Что она делает:
+                //Завершает процесс инициализации актора.
+                //Регистрирует актора в мире.Вызывает PostActorCreated()(если переопределен).
+                //Вызывает ExecuteConstruction()(что вызовет OnConstruction() в C++ и Construction Script в Blueprint).
+                //Вызывает PostInitializeComponents().
+                //Вызывает BeginPlay().
+                //После вызова этой функции актор считается полностью “живым” и активным в мире.
+                //
+                //Payload.InitialTransform: В FinishSpawning также передается трансформация.
+                Geometry->FinishSpawning(Payload.InitialTransform);
+            }
+        }
+    }
+}
+
+// Called every frame
+void AGeometryHubTestingActor::Tick(float DeltaTime)
+{
+    Super::Tick(DeltaTime);
+}
+```
 
 ```cpp
 #include "Engine/World.h"
@@ -1102,6 +1371,8 @@ void ABaseGeometryActor::OnTimerFired()
 ![[Pasted image 20241130024635.png]]
 ![[Pasted image 20241130024643.png]]
 ![[Pasted image 20241130024651.png]]
+
+
 
 Так же существует второй способ создания актора, запустив сначала выполнение присвоение настроек, а потом бегин плей самого актора. 
 
@@ -1215,10 +1486,81 @@ void AGeometryHubActor::DoActorSpawn3()
 
 ![[Pasted image 20241130031543.png]]
 
-## UFUNCTION
+## UFUNCTION, вызов функции в блюпринт графе 
 ---
+https://dev.epicgames.com/documentation/en-us/unreal-engine/ufunctions-in-unreal-engine?application_version=5.4
+
+путем вызова break мы можем получать доступ ко всем полям структуры, кроме поля timer rate, так как для него не указали BlueprintReadWrite
 
 ![[Pasted image 20241211123548.png]]
+
+![[Pasted image 20250513055214.png]]
+
+```cpp
+USTRUCT(BlueprintType)
+struct FGeometrydataTestingActor
+{
+    GENERATED_USTRUCT_BODY()
+
+	//BlueprintReadWrite позволяет вытащить переменную в блюпринт граф
+
+    //Две переменные, отвечающие за амплитуду и частоту колебаний для логики движения объектов
+    UPROPERTY(EditAnywhere, BlueprintReadWrite,Category = "Movement")
+    float Amplitude = 50.0f;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
+    float Frequency = 2.0f;
+
+    //Создание переменной MoveType типа enum MovementType
+    //который содержит переходные значия STATIC, SIN
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
+    EMovementTypeTestingActor MoveType = EMovementTypeTestingActor::STATIC;
+
+    //Цвет меша
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Design")
+    FLinearColor Color = FLinearColor::Black;
+
+    //Таймер 
+    UPROPERTY(EditAnywhere, Category = "Design")
+    float TimerRate = 3.0f;
+};
+
+UCLASS()
+class GAMEC_API ATestingNewActor : public AActor
+{
+    GENERATED_BODY()
+
+public:
+    // Sets default values for this actor's properties
+    ATestingNewActor();
+
+    //Добавление статик компонета статик меша к актору
+    //Принимает по указателю на BaseMesh
+    UPROPERTY(EditAnywhere)
+    UStaticMeshComponent* BaseMesh;
+
+    //позволяет вызвать функцию из блюпринт графа 
+    UFUNCTION(BlueprintCallable)
+    FGeometrydataTestingActor GetGeometryData() const {return GeometryData;}
+
+protected:
+    // Called when the game starts or when spawned
+    virtual void BeginPlay() override;
+
+    //переменная хранящая в себе структуру
+    //В ней хранятся для вывода другие переменные
+    UPROPERTY(EditAnywhere,BlueprintReadWrite,  Category = "GeometryData")
+    FGeometrydataTestingActor GeometryData;
+    
+public:
+    // Called every frame
+    virtual void
+    Tick(float DeltaTime) override;
+
+private:
+};
+
+```
 
 Позволяет все переменные GeometryData вытащить в блюпринт 
 
@@ -1265,10 +1607,207 @@ public:
 	FGeometryData GetGeometryData() const {return GeometryData; }
 ```
 
-## Делегаты. 
+## Делегаты. Разрушение объекта. Destroy
 ---
 
+Delegate documentation
+https://dev.epicgames.com/documentation/en-us/unreal-engine/delegates-and-lamba-functions-in-unreal-engine?application_version=5.4
+
+Позволяют хранить в себе метод с определенной сигнатурой, произвольного класса и вызывать когда необходимо 
+
+Делегат это тот же евент диспатчер 
+
+Делегаты в Unreal Engine (и в C++ в целом, хотя UE имеет свою мощную реализацию) — это очень важный механизм, который позволяет **безопасно вызывать функции объекта, не зная тип этого объекта или конкретную функцию во время компиляции.**
+
+Проще говоря, это **способ для одного объекта сказать другому: “Когда у тебя произойдет это событие, пожалуйста, вызови вот эту мою функцию”.**
+
+Представь себе это как подписку на уведомления или назначение ответственного.
+
+**Основные концепции:**
+
+1. **Указатель на функцию, но безопаснее и гибче:** Делегат, по сути, хранит указатель на функцию-член какого-либо объекта (или на глобальную/статическую функцию). В отличие от сырых указателей на функции C++, делегаты в UE:
+    
+    - **Типобезопасны:** Компилятор проверяет, что сигнатура функции (тип возвращаемого значения и типы параметров) соответствует сигнатуре делегата.
+    - **Знают об объекте:** Делегат, связанный с функцией-членом, знает, на каком объекте эту функцию вызывать.
+    - **Проверка на валидность:** Можно проверить, связан ли делегат с какой-либо функцией, перед тем как его вызвать (`IsBound()`, `ExecuteIfBound()`).
+    - **Динамическое связывание/отвязывание:** Функции можно привязывать и отвязывать от делегата во время выполнения.
+2. **Механизм обратного вызова (Callback):** Делегаты часто используются для реализации колбэков. Один объект может передать делегат другому, и второй объект вызовет этот делегат, когда определенное событие произойдет.
+    
+3. **Система событий:** Делегаты лежат в основе системы событий Unreal Engine.
+    
+
+**Зачем нужны делегаты?**
+
+- **Декаплинг (Decoupling) / Слабая связанность:** Объект, который “вещает” (broadcasts) событие через делегат, не должен ничего знать о том, кто на это событие подписан и какие функции будут вызваны. Это делает код более модульным и гибким. Например, кнопка не знает, что должно произойти при ее нажатии; она просто сообщает “Меня нажали!”, а другие системы, подписанные на этот делегат, реагируют.
+- **Уведомления об изменениях:** Когда состояние одного объекта меняется (например, здоровье персонажа), он может уведомить об этом другие заинтересованные объекты (например, UI для обновления полоски здоровья, звуковую систему для проигрывания звука) через делегат.
+- **Гибкая настройка поведения:** Можно изменять поведение объекта, привязывая разные функции к его делегатам.
+
+**Типы делегатов в Unreal Engine:**
+
+В UE существует несколько типов делегатов, каждый для своих нужд:
+
+1. **Одноадресные (Single-cast) делегаты:**
+    
+    - Может быть привязана только **одна** функция.
+    - Если привязать новую функцию, старая отвяжется.
+    - Могут возвращать значение.
+    - Макросы для объявления: `DECLARE_DELEGATE...` (например, `DECLARE_DELEGATE(FMyDelegateName)` или `DECLARE_DELEGATE_RetVal_OneParam(float, FMyDelegateName, int32)`)
+    - Для вызова: `Execute()`, `ExecuteIfBound()`.
+    - 
+2. **Многоадресные (Multicast) делегаты:**
+    
+    - Может быть привязано **несколько** функций.
+    - При вызове делегата будут вызваны все привязанные функции (в порядке их добавления).
+    - **Не могут возвращать значение** (потому что непонятно, значение какой из функций возвращать).
+    - Макросы для объявления: `DECLARE_MULTICAST_DELEGATE...` (например, `DECLARE_MULTICAST_DELEGATE(FMyMulticastDelegateName)` или `DECLARE_MULTICAST_DELEGATE_OneParam(FMyMulticastDelegateName, float)`)
+    - Для вызова: `Broadcast()`.
+    - Для привязки/отвязки: `Add...()`, `Remove...()`.
+3. **Динамические (Dynamic) делегаты:**
+    
+    - Могут быть **сериализованы** (сохранены и загружены) и **безопасно использоваться с Blueprints**.
+    - Привязка функций происходит по их имени (FName), что делает их медленнее обычных делегатов.
+    - Могут быть как одноадресными, так и многоадресными.
+    - Макросы для объявления: `DECLARE_DYNAMIC_DELEGATE...`, `DECLARE_DYNAMIC_MULTICAST_DELEGATE...`
+    - Функции, привязываемые к динамическим делегатам, должны быть помечены как `UFUNCTION()`.
+
+![[Pasted image 20250513064502.png]]
+
+![[Pasted image 20250513070804.png]]
+
+
 ![[Pasted image 20241211181650.png]]
+
+LogForTestingNewActor: Display: TimerCount: 5, Color to set  up: (R=1.000000,G=0.164062,B=0.000000,A=1.000000)
+LogHubActor: Warning: Actor name: BP_Cube_MyTestingNewActor_C_0 Color: (R=1.000000,G=0.164062,B=0.000000,A=1.000000)
+LogBlueprintUserMessages: [BP_Cube_MyTestingNewActor_C_0] BP_Cube_MyTestingNewActor_C_0 = (R=1.000000,G=0.164062,B=0.000000,A=1.000000)
+LogForTestingNewActor: Display: Timer has been stopped!
+LogHubActor: Error: Timer finished: BP_Cube_MyTestingNewActor_C_0
+LogHubActor: Error: Cast success, amplitude 50.000000
+LogForTestingNewActor: Error: Actor has been destroyed
+
+.h
+
+```cpp
+
+//объявление делегата
+//Все делегаты назавния объявляются с большой буквы F
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnColorChangedTestingNewActor, const FLinearColor&, Color, const FString&, Name);
+
+//так как этот делегат только в с++, мы можем не указывать имя актора в блюпринтах
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnTimerFinishedTestingNewActor, AActor*);
+
+UCLASS()
+class GAMEC_API ATestingNewActor : public AActor
+{
+    GENERATED_BODY()
+
+public:
+    // Sets default values for this actor's properties
+    ATestingNewActor();
+
+    //создание делегатов
+    //так же что можно было подписаться на него в блюпринтах
+    UPROPERTY(BlueprintAssignable)
+    FOnColorChangedTestingNewActor OnColorChanged;
+
+    FOnTimerFinishedTestingNewActor OnTimerFinished;
+
+protected:
+    // Called when the game starts or when spawned
+    virtual void BeginPlay() override;
+
+
+    //виртуальная функция конца 
+    virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
+
+```
+
+```CPP
+UCLASS() class GAMEC_API AGeometryHubTestingActor : public AActor
+{
+    GENERATED_BODY()
+
+public:
+    // Sets default values for this actor's properties
+    AGeometryHubTestingActor();
+
+private:
+	//Функция на срабатывание делегатов
+    //Функции которые мы добавляем к динамическим дилегатам, должны быть помечены UFUNCTION
+    UFUNCTION()
+    void OnColorChanged(const FLinearColor& Color, const FString& Name);
+
+    void OnTimerFinished(AActor* Actor);
+};
+```
+
+```cpp
+
+DEFINE_LOG_CATEGORY_STATIC(LogHubActor, All, All);
+
+
+//функция при срабатывании делегатов
+void AGeometryHubTestingActor::OnColorChanged(const FLinearColor& Color, const FString& Name)
+{
+    UE_LOG(LogHubActor, Warning, TEXT("Actor name: %s Color: %s"), *Name, *Color.ToString());
+}
+
+void AGeometryHubTestingActor::OnTimerFinished(AActor* Actor)
+{
+    if (!Actor) return;
+    UE_LOG(LogHubActor, Error, TEXT("Timer finished: %s"), *Actor->GetName());
+
+    //Даункастинг, преобразует указатель на базовый класс на указатель на класс наследника
+    ATestingNewActor* Geometry = Cast<ATestingNewActor>(Actor);
+    if (!Geometry) return;
+
+    UE_LOG(LogHubActor, Error, TEXT("Cast success, amplitude %f"), Geometry->GetGeometryData().Amplitude);
+
+    //удаление актора со сцены
+    Geometry->Destroy();
+
+    //через 2 сек вызовется destroy
+    //Geometry->SetLifeSpan(2.0f);
+}
+
+```
+
+```cpp
+void ATestingNewActor::OnTimerFired()
+{
+    if (++TimerCount <= MaxTimerCount)
+    {
+        const FLinearColor NewColor = FLinearColor::MakeRandomColor();
+
+        //TimerCount передается по значению, потому что спецификатор %i требует значение типа int.
+        //*NewColor.ToString() передается как указатель, потому что спецификатор % s требует указатель на строку типа const TCHAR *.
+        UE_LOG(LogForTestingNewActor, Display, TEXT("TimerCount: %i, Color to set  up: %s"), TimerCount, *NewColor.ToString());
+        SetColor(NewColor);
+        
+        //Вызов делегата, говорит "Я Сработал!"
+        //Когда где либо кто то получает сообщение что тут сработал делегат 
+        //начинает логика из него 
+        OnColorChanged.Broadcast(NewColor, GetName());
+    }
+    else
+    {
+        UE_LOG(LogForTestingNewActor, Display, TEXT("Timer has been stopped!"));
+
+        //остановка таймера, какой таймер остановить
+        GetWorldTimerManager().ClearTimer(TimerHandle);
+
+        //Вызов второго делегата, когда таймер закончил работу
+        OnTimerFinished.Broadcast(this);
+    }
+}
+
+void ATestingNewActor::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+    UE_LOG(LogForTestingNewActor, Error, TEXT("Actor has been destroyed"));
+    Super::EndPlay(EndPlayReason);
+}
+
+```
 
 baseGeometryActor.h
 
@@ -1376,24 +1915,33 @@ void AGeometryHubActor::OnTimerFinished(AActor* Actor)
 }
 ```
 
-## Pawn. GameModeBase
+## GameModeBase
 ---
+### Gameplay Framework
+
+https://dev.epicgames.com/documentation/en-us/unreal-engine/gameplay-framework-in-unreal-engine?application_version=5.4
+
+![[Pasted image 20250513202121.png]]
+### Gamemode
 
 Настройка основного GameModeBase и замена там Pawn. Для управления в стороны
-
-![[Pasted image 20241212162503.png]]
-
-![[Pasted image 20241212163003.png]]
 
 gameCGameModeBase.cpp
 
 ```cpp
+// Copyright Epic Games, Inc. All Rights Reserved.
+
+
 #include "gameCGameModeBase.h"
+//подключение класса pawn 
 #include "SandboxPawn.h"
+#include "SandboxPlayerController.h"
 
 AgameCGameModeBase::AgameCGameModeBase()
 {
+	//переопределяем дефолт классы 
 	DefaultPawnClass = ASandboxPawn::StaticClass();
+	PlayerControllerClass = ASandboxPlayerController::StaticClass();
 }
 ```
 
@@ -1417,14 +1965,71 @@ class GAMEC_API AgameCGameModeBase : public AGameModeBase
 	GENERATED_BODY()
 	
 	public:
+		//конструктор для гейммода 
 		AgameCGameModeBase();
 };
+
 ```
 
-SandboxPawn.cpp
+Если провалиться через .h файл в gamemode, в затем в любую функцию то можно найти как засетаплены все установки на переопределение 
+
 
 ```cpp
+AGameModeBase::AGameModeBase(const FObjectInitializer& ObjectInitializer)
+	: Super(ObjectInitializer.DoNotCreateDefaultSubobject(TEXT("Sprite")))
+{
+	bNetLoadOnClient = false;
+	bPauseable = true;
+	bStartPlayersAsSpectators = false;
+
+	DefaultPawnClass = ADefaultPawn::StaticClass();
+	PlayerControllerClass = APlayerController::StaticClass();
+	PlayerStateClass = APlayerState::StaticClass();
+	GameStateClass = AGameStateBase::StaticClass();
+	HUDClass = AHUD::StaticClass();
+	GameSessionClass = AGameSession::StaticClass();
+	SpectatorClass = ASpectatorPawn::StaticClass();
+	ReplaySpectatorPlayerControllerClass = APlayerController::StaticClass();
+	ServerStatReplicatorClass = AServerStatReplicator::StaticClass();
+}
+```
+
+![[Pasted image 20241212162503.png]]
+
+## Mapping, Action Mapping, Axis Mapping
+
+![[Pasted image 20241212163003.png]]
+
+При action mapping - единичный тик 
+при axis mapping - тик пока кнопка нажата 
+
+scale позволяет инвертировать зажатие клавиши 
+
+## Pawn
+
+pawn documentation
+https://dev.epicgames.com/documentation/en-us/unreal-engine/pawn-in-unreal-engine?application_version=5.4
+
+Bind documentation 
+https://www.geeksforgeeks.org/bind-function-placeholders-c/
+
+"This" documentation
+https://en.cppreference.com/w/cpp/language/this
+
+Input documentation
+https://dev.epicgames.com/documentation/en-us/unreal-engine/input-in-unreal-engine?application_version=5.4
+
+SandboxPawn.h
+```cpp
+// Fill out your copyright notice in the Description page of Project Settings.
+
+#pragma once
+
+#include "CoreMinimal.h"
+#include "GameFramework/Pawn.h"
 #include "SandboxPawn.generated.h"
+
+class UCameraComponent;
 
 UCLASS()
 class GAMEC_API ASandboxPawn : public APawn
@@ -1435,11 +2040,25 @@ public:
 	// Sets default values for this pawn's properties
 	ASandboxPawn();
 
+	//создание переменной, корневой компонент
+	//Содержит в себе только трансформацию в мире, к нему можно при атачить другие компоненты 
 	UPROPERTY(VisibleAnywhere)
 	USceneComponent* SceneComponent;
 
+	//добавление статик меша
+	UPROPERTY(VisibleAnywhere)
+	UStaticMeshComponent* StaticMeshComponent;
+
+	UPROPERTY(VisibleAnywhere)
+	UCameraComponent* CameraComponent;
+
+	//Скорость
 	UPROPERTY(EditAnywhere)
-		float Velocity = 300.0f;
+	float Velocity = 300.0f;
+
+	//виртуальные функции, получения контроля над pawn
+	virtual void PossessedBy(AController* NewController) override;
+	virtual void UnPossessed() override;
 
 protected:
 	// Called when the game starts or when spawned
@@ -1453,30 +2072,54 @@ public:
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
 private:
+	//Вектор скорости pawn 
+	//по умолчанию он нулевой
 	FVector VelocityVector = FVector::ZeroVector;
 
+	//Функции движения вперед назад, принимают параметр
 	void MoveForward(float Amount);
 	void MoveRight(float Amount);
 };
+
 ```
 
 SandboxPawn.cpp
 
 ```cpp
-#include "SandboxPawn.h"
-#include "Components/InputComponent.h"
+// Fill out your copyright notice in the Description page of Project Settings.
 
+
+#include "SandboxPawn.h"
+//объявление заголовочный файлов для использования 
+#include "Components/InputComponent.h"
+#include "Components/StaticMeshComponent.h"
+#include "Camera/CameraComponent.h"
+
+//собственная категория логирования для pawn 
 DEFINE_LOG_CATEGORY_STATIC(LogSandboxPawn, All, All)
 
 // Sets default values
 ASandboxPawn::ASandboxPawn()
 {
- 	// Set this pawn to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
+	// Set this pawn to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
+	//Определение корневого элемента, применение к нему логики
 	SceneComponent = CreateDefaultSubobject<USceneComponent>("SceneComponent");
 	SetRootComponent(SceneComponent);
 
+	//добавление статик меш компонента  класс 
+	//атачим к сцене, базовой трансформации сцены
+	StaticMeshComponent = CreateDefaultSubobject<UStaticMeshComponent>("StaticMeshComponent");
+	StaticMeshComponent->SetupAttachment(GetRootComponent());
+	
+	//поменять трансформацию относительно родительского компонента 
+	//StaticMeshComponent->SetRelativeLocation();
+
+	//добавление камеры
+	//атачим к сцене, базовой трансформации сцены
+	CameraComponent = CreateDefaultSubobject<UCameraComponent>("CameraComponent");
+	CameraComponent->SetupAttachment(GetRootComponent());
 }
 
 // Called when the game starts or when spawned
@@ -1491,42 +2134,83 @@ void ASandboxPawn::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	//на функцию tick мы изменяем положение нашего pawn в зависимости от вектора скорости
+	//если вектор 0, то вычисления можно не делать
+	//if (!VelocityVector.IsZero() &&IsControlled) проверки на то управляется ли кем то или нет 
 	if (!VelocityVector.IsZero())
 	{
+		//локальная константа, в которой хранится новое положения для pawn
+		//вычисляется она по формулен равномерного прямолинейного движения 
+		//r = r0 + vt
 		const FVector NewLocation = GetActorLocation() + Velocity * DeltaTime * VelocityVector;
 		SetActorLocation(NewLocation);
+
+		//второй способ вместо &&IsControlled, останавливать объект. 
+		//обнулять вектор скорости
+		VelocityVector = FVector::ZeroVector;
 	}
 }
 
 // Called to bind functionality to input
+//бинд функций для управления
 void ASandboxPawn::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
-	PlayerInputComponent->BindAxis("MoveForward", this, &ASandboxPawn::MoveForward);
-	PlayerInputComponent->BindAxis("MoveRight", this, &ASandboxPawn::MoveRight);
+	//проверка на нулевой указатель
+	if (PlayerInputComponent)
+	{
+		//"бинд маппинга" "указатель на объект" "ссылка на функцию, которые мы вызываем во время работы"
+		PlayerInputComponent->BindAxis("MoveForward", this, &ASandboxPawn::MoveForward);
+		PlayerInputComponent->BindAxis("MoveRight", this, &ASandboxPawn::MoveRight);
+	}
 }
 
 void ASandboxPawn::MoveForward(float Amount)
 {
-	UE_LOG(LogSandboxPawn, Display, TEXT("Move forward: %f"), Amount)
+	//UE_LOG(LogSandboxPawn, Display, TEXT("Move forward: %f"), Amount)
+	//изменение вектора скорости в зависимости от значения
+	//значения будут -1, 0, 1
 	VelocityVector.X = Amount;
 }
 
 void ASandboxPawn::MoveRight(float Amount)
 {
-	UE_LOG(LogSandboxPawn, Display, TEXT("Move right: %f"), Amount)
+	//UE_LOG(LogSandboxPawn, Display, TEXT("Move right: %f"), Amount)
 	VelocityVector.Y = Amount;
 }
+
+//Получение контроля над pawn
+void ASandboxPawn::PossessedBy(AController* NewController)
+{
+	Super::PossessedBy(NewController);
+
+	//проверка на нулевой указатель
+	if (!NewController) return;
+	UE_LOG(LogSandboxPawn, Error, TEXT("%s possessed %s"), *GetName(), *NewController->GetName());
+}
+
+void ASandboxPawn::UnPossessed()
+{
+	Super::UnPossessed();
+
+	UE_LOG(LogSandboxPawn, Warning, TEXT("%s unpossessed"), *GetName());
+}
+
 ```
 
 ## Player Controller
 ---
+
+https://dev.epicgames.com/documentation/en-us/unreal-engine/player-controllers-in-unreal-engine?application_version=5.4
+
 ![[Pasted image 20241212233801.png]]
 
 SandboxPlayerController.h
 
 ```cpp
+// Fill out your copyright notice in the Description page of Project Settings.
+
 #pragma once
 
 #include "CoreMinimal.h"
@@ -1543,34 +2227,45 @@ class GAMEC_API ASandboxPlayerController : public APlayerController
 	
 
 protected:
+	//переопределение класса управления
 	virtual void SetupInputComponent() override;
 	virtual void BeginPlay() override;
 
 private:
+	//Массив со всеми pawn по которым мы можем переключаться
 	UPROPERTY()
 	TArray<AActor*> Pawns;
 
+	//инднекс текущего индекса pawn 
 	int32 CurrentPawnIndex = 0;
 
 	void ChangePawn();
 };
+
 ```
 
 SandboxPlayerController.cpp
 ```cpp
+// Fill out your copyright notice in the Description page of Project Settings.
+
+
 #include "SandboxPlayerController.h"
 #include "Components/InputComponent.h"
+//доп класс для UGameplaySatics
 #include "Kismet/GameplayStatics.h"
 #include "SandboxPawn.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogSandboxPlayerController, All, All)
 
+//переопределенная функция при нажатии клавиши
 void ASandboxPlayerController::SetupInputComponent()
 {
 	Super::SetupInputComponent();
 
+	//проверка на нулевой указатель
 	if (InputComponent)
 	{
+		//запуск действий при нажатии клавиши 
 		InputComponent->BindAction("ChangePawn", IE_Pressed, this, &ASandboxPlayerController::ChangePawn);
 	}
 }
@@ -1579,21 +2274,31 @@ void ASandboxPlayerController::BeginPlay()
 {
 	Super::BeginPlay();
 
-
+	//получение всех акторов со сцены ASandboxPawn
+	//может получить всех акторов в мире ASandboxPawn 
+	//или получить доступ к акторам у SandboxPlayerController передав туда ключевое слово this
 	UGameplayStatics::GetAllActorsOfClass(GetWorld(), ASandboxPawn::StaticClass(), Pawns);
 }
 
+//функция изменения pawn
 void ASandboxPlayerController::ChangePawn()
 {
+	//количество элементов в массиве больше 1 
 	if (Pawns.Num() <= 1) return;
 
+	//изменение pawn на одного из тех, кто находится на сцене
+	//указатель на pawn из массива
+	//каждый раз будет получать новый pawn, меняя индекс массива
 	ASandboxPawn* CurrentPawn = Cast<ASandboxPawn>(Pawns[CurrentPawnIndex]);
+	
+	//прибавление для перехода на след pawn
 	CurrentPawnIndex = (CurrentPawnIndex + 1) % Pawns.Num();
 	if (!CurrentPawn) return;
 
 	UE_LOG(LogSandboxPlayerController, Error, TEXT("Change player pawn"));
 	Possess(CurrentPawn);
 }
+
 ```
 
 SandboxPawn.h
@@ -1621,14 +2326,402 @@ void ASandboxPawn::UnPossessed()
 }
 ```
 
+```
+//
+//	EInputEvent
+//
+UENUM( BlueprintType, meta=(ScriptName="InputEventType"))
+enum EInputEvent
+{
+	IE_Pressed              =0,
+	IE_Released             =1,
+	IE_Repeat               =2,
+	IE_DoubleClick          =3,
+	IE_Axis                 =4,
+	IE_MAX                  =5,
+};
+```
+
+отключает спавн AI автоматически для неуправляемых pawn
+
+![[Pasted image 20250513193403.png]]
+
+## GetAllActorsOfClass
+
+```cpp
+//доп класс для UGameplaySatics
+#include "Kismet/GameplayStatics.h"
+
+void ASandboxPlayerController::BeginPlay()
+{
+	Super::BeginPlay();
+
+	//получение всех акторов со сцены
+	UGameplayStatics::GetAllActorsOfClass(GetWorld(), ASandboxPawn::StaticClass(), Pawns);
+}
+```
+
+## Обзор основных классов Unreal 
+
+![[Pasted image 20250513173222.png]]
+
+![[Pasted image 20250513174305.png]]
+
+```
+					UObject 
+					/      \ 
+				   /        \
+			AActor         UActorComponent 
+			   |                 | 
+			APawn           USceneComponent
+				|         UStaticMeshComponent 
+		   ACharacter	   UCameraComponent 
+								 ...
+```
+
+От `UObject` напрямую наследуется **огромное количество** классов, представляющих самые разные сущности в движке. Вот несколько важных категорий и примеров:
+
+1. **Ассеты (Assets):** Классы, представляющие ресурсы, которые ты видишь в Content Browser. Им нужны свойства `UObject` для управления памятью, сериализации и отображения в редакторе.
+    
+    - `UStaticMesh`: Представляет статическую модель (сам ассет, не компонент на сцене).
+    - `USkeletalMesh`: Представляет скелетную модель.
+    - `UMaterialInterface`, `UMaterial`, `UMaterialInstance`: Представляют материалы и их экземпляры.
+    - `UTexture`, `UTexture2D`: Представляют текстуры.
+    - `UAnimSequence`, `UAnimMontage`, `UBlendSpace`: Представляют различные анимационные ассеты.
+    - `USoundBase`, `USoundWave`, `USoundCue`: Представляют звуковые ассеты.
+    - `UBlueprint`: Представляет сам ассет блюпринта.
+    - `UDataTable`: Представляет таблицу данных.
+    - `ULevel`: Представляет ассет уровня.
+    - `UWorld`: Представляет загруженный мир/уровень (хотя часто с ним работают через `GetWorld()`, его класс наследуется от `UObject`).
+2. **Объекты Пользовательского Интерфейса (UMG):**
+    
+    - `UWidget`: Базовый класс для всех элементов интерфейса UMG.
+    - `UUserWidget`: Базовый класс для пользовательских виджетов, которые ты создаешь в редакторе UMG.
+3. **Подсистемы Движка (Engine Subsystems):** Модульные классы, предоставляющие различную функциональность движка.
+    
+    - `UEngineSubsystem`
+    - `UGameInstanceSubsystem`
+    - `UWorldSubsystem`
+    - `ULocalPlayerSubsystem`
+4. **Основные Объекты Игры и Движка:**
+    
+    - `UGameInstance`: Объект, который существует на протяжении всей сессии игры (даже при смене уровней).
+    - `UEngine`: Глобальный объект движка.
+5. **Данные и Конфигурация:**
+    
+    - `UDataAsset`: Базовый класс для создания ассетов, содержащих только данные.
+    - `UDeveloperSettings`: Для настроек проекта, доступных в Project Settings.
+    - `UInputMappingContext`, `UInputAction`: Классы системы Enhanced Input.
+6. **И многие другие…** Включая различные менеджеры, хелперы, структуры данных, которые используются внутри движка и которым нужны возможности `UObject`.
+    
+
+**Ключевая идея:**
+
+Любому классу в Unreal Engine, которому требуется:
+
+- Управление памятью через сборщик мусора (GC).
+- Отражение (reflection) для доступа к свойствам и функциям во время выполнения (нужно для Blueprints, редактора, сети).
+- Сериализация (сохранение/загрузка).
+- Интеграция с редактором (отображение свойств в Details панели).
+- Использование макросов `UPROPERTY()`, `UFUNCTION()`, `UCLASS()`, `USTRUCT()`, etc.
+
+Так же pawn может управлять AI 
+
+HUD - класс manages для widget 
+
+Spectator class - это доп класс наблюдателя, нужен когда игрок больше не играет
+
+Player state class - класс для хранения статистики игрока 
+
+Game state class - для много пользовательской игры, через нее на сервер передаются данные о клиенте, о игровом процессе 
+
+Game Instance Class - глобальный класс, который существует на протяжении всей игры 
+
+![[Pasted image 20250513174711.png]]
+
+![[Pasted image 20250513174751.png]]
+
 ## Modules, Targets, UnrealBuildTool
 ---
+### GameName.Target.cs. UnrealBuildTool
+
+Правила по которому будет собран проект при запуске игры. 
+
+```cpp
+// Copyright Epic Games, Inc. All Rights Reserved.
+
+using UnrealBuildTool;
+using System.Collections.Generic;
+
+public class gameCTarget : TargetRules
+{
+	public gameCTarget( TargetInfo Target) : base(Target)
+	{
+		Type = TargetType.Game;
+		DefaultBuildSettings = BuildSettingsVersion.V2;
+		ExtraModuleNames.AddRange( new string[] { "gameC" } );
+	}
+}
+```
+
+Запускается специальная утилита. Запускает данную программу, которая вызывается. То есть мы можем собрать какой то файл, который будет вызывать эту программу
+
+![[Pasted image 20250513194217.png]]
+
+### Module
+
+https://dev.epicgames.com/documentation/en-us/unreal-engine/module-properties-in-unreal-engine?application_version=5.4
+
+Весь код движка состоит из модулей. Как кирпичики. В нем инкапсулирована какая то логика движка. ИИ, специфекты, интерефейс
+
+Наш проект с игрой так же является модулем, который наследуется от ModuleRules
+
+В списке PublicDependencyModuleNames в нем указаны от какие модулей будет зависеть запуск проекта. По умолчанию добавлены 4 модуля движка
+
+
 ![[Pasted image 20241214200746.png]]
+
+В папке runtime лежат исходники движка и каждая папка является модулем 
+
+![[Pasted image 20250513194635.png]]
+
+В папке build можно посмотреть как происходит сборка модуля. Зависит от платформы
+
+![[Pasted image 20250513194729.png]]
+
+## GameName.h  | GameName.cpp
+
+
+![[Pasted image 20250513194931.png]]
+
+В этих файлах указывается основной игровой модуль. То есть сама игра может состоять из модулей
+
+.h
+
+```cpp
+// Copyright Epic Games, Inc. All Rights Reserved.
+
+#pragma once
+
+#include "CoreMinimal.h"
+
+```
+
+.cpp
+
+```cpp
+// Copyright Epic Games, Inc. All Rights Reserved.
+
+#include "gameC.h"
+#include "Modules/ModuleManager.h"
+
+IMPLEMENT_PRIMARY_GAME_MODULE( FDefaultGameModuleImpl, gameC, "gameC" );
+
+```
+
+### .uproject 
+
+js file
+
+Доп настройки игры и загрузка модулей, версии движка и описания
+
+```cpp
+{
+	"FileVersion": 3,
+	"EngineAssociation": "4.26",
+	"Category": "",
+	"Description": "",
+	"Modules": [
+		{
+			"Name": "gameC",
+			"Type": "Runtime",
+			"LoadingPhase": "Default",
+			"AdditionalDependencies": [
+				"Engine"
+			]
+		}
+	]
+}
+```
+
+### Forward Declaration. Libraries. Precomiped headers. IWYU подход
+
+https://dev.epicgames.com/documentation/en-us/unreal-engine/include-what-you-use-iwyu-for-unreal-engine-programming?application_version=5.4
+
+Заранее процессировать группу файлов и потом вставлять готовый текст 
+
+```cpp
+// Copyright Epic Games, Inc. All Rights Reserved.
+
+using UnrealBuildTool;
+
+public class gameC : ModuleRules
+{
+	public gameC(ReadOnlyTargetRules Target) : base(Target)
+	{
+		//Precomiped headers usage 
+		//значения при которых будут подключаться sharedpch файлы
+		//не использовать 
+		//PCHUsage = PCHUsageMode.NoPCHs; 
+		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
+	
+		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore" });
+
+		PrivateDependencyModuleNames.AddRange(new string[] {  });
+
+		// Uncomment if you are using Slate UI
+		// PrivateDependencyModuleNames.AddRange(new string[] { "Slate", "SlateCore" });
+		
+		// Uncomment if you are using online features
+		// PrivateDependencyModuleNames.Add("OnlineSubsystem");
+
+		// To include OnlineSubsystemSteam, add it to the plugins section in your uproject file with the Enabled attribute set to true
+	}
+}
+```
+
+Данный файл SharedPCHHeaderFile = "Public/EngineSharedPCH.h"; будет добавлен при компилиции модуля
+
+![[Pasted image 20250513195752.png]]
+
+В данном файле будут добавлены заголовки при процессировании, это файлы, код в которых меняется очень редко
+
+![[Pasted image 20250513195848.png]]
+
+### Поиск по документации 
+
+https://dev.epicgames.com/documentation/en-us/unreal-engine/API/Runtime/Engine/Components/UStaticMeshComponent?application_version=5.5
+
+![[Pasted image 20250513200600.png]]
+
+![[Pasted image 20250513200617.png]]
+
+### GameNameEditor.Target.cs.
+
+https://dev.epicgames.com/documentation/en-us/unreal-engine/unreal-engine-build-tool-target-reference?application_version=5.4
+
+Если мы хоти запустить игру под editor то используется editor таргет, если хотим создать stand alone то используется обычный 
+
+Если мы хотим собрать серверную игру, то нужно будет вручную добавить Server.Target.cs
+
+При компиляции наш код собирается в dll файлы
+
+![[Pasted image 20250513202548.png]]
+
+для каждого модуля тоже созданы dll файлы в  категории движка. Когда устанавливается анрил, на компьютер копируются заранее скомпилированные dll файлы в виде бинарных модулей. 
+
+Когда мы хотим скомпилировать анрил из исходников, то компиляция модулей и создание dll происходит на нашей локальной машине 
+ 
+![[Pasted image 20250513202616.png]]
+
+## Макросы. Генерация кода 
+
+### Генерация кода
+
+В анриле реализована собственная reflection system или система рефлексии, которые могут отслеживать собственную структуру и поведение во время ее выполнения 
+
+С помощью ее мы можем получать информацию о типах, вызывать функцию по имени, получать имена элементов, енамов, можем создать итератор, который будет обходить все имена структуры и получать какую то информацию, можем передать указатель на класс, объект которого мы хотим создать
+
+Эдитор 
+Сериализация кода - когда мы создаем какие то объекте во вьюпорте измеяем их, перезапускаем эдитор, все значения сохраняются. Так же есть работа с сетью 
+
+### Шаблоны, templates
+
+В данной папке лежат все шаблоны templates 
+
+![[Pasted image 20250513203353.png]]
+
+если мы откроем шаблон, то увидит файл в котором поля поставляются в нужные имена классов. И в результате создания всех переменных создается итоговый файл класса 
+
+![[Pasted image 20250513203444.png]]
+
+### Как происходит билд проекта 
+
+Происходить парсинг, затем запускается специальная утилита, UnrealHeaderTool
+это специльный генератор, который обрабатывает все макросы в нашем исходном коде 
+
+![[Pasted image 20250513203614.png]]
+
+Первое что он делает он просматривает все заголовочные файлы .h и ищет в них .generated.h
+Это является маркером для unrealHeaderTool, он понимает что данный заголовочный файл нужно обработать. те в нем присутствует специфический анрил тип
+ 
+Затем генератор проходит по всем enum. ustruct, class, upropetry, ufuction и генерирует дополнительный код, который необходим для reflection system. 
+
+Часть кода попадает в generated.h Она не предназначена для чтения человеком. Но можно увидеть что создались обертки вокруг property. А если поискать член класса, который не является propetry (помеченный UPROPERTY) мы ничего не найдем, никакой доп код не был сгенерирован для него
+
+![[Pasted image 20250513204052.png]]
+
+По этому пути лежат сгенерированные файлы, помимо них генерируются так же .cpp файлы. Так же данные файлы не предназначены для чтения человеком. Знать что происходит внутри во время разработки не обязательно 
+
+Так же их можно спокойно удалить, они пересоздаться с помощью unreal.headertool
+
+
+![[Pasted image 20250513204242.png]]
+
+### Макрос 
+
+Макрос в программировании (и в C++ в частности) — это, по сути, **инструкция препроцессору, которая заменяет определенный идентификатор (имя макроса) на заданный код или выражение _до_ начала фактической компиляции программы.**
+
+1. **Определение макроса:** Ты определяешь макрос с помощью директивы препроцессора `#define`.
+    
+    - **Простой макрос (объектный):** Заменяет имя на значение.
+        
+        ```c++
+        #define PI 3.14159
+        #define GREETING "Hello, World!"
+        ```
+        
+    - **Функциональный макрос:** Может принимать аргументы и выглядит как функция, но это все еще текстовая подстановка.
+        
+        ```c++
+        #define SQUARE(x) (x * x)
+        #define MAX(a, b) ((a) > (b) ? (a) : (b))
+        ```
+        
+2. **Препроцессинг:** Перед тем как компилятор начнет разбирать твой C++ код на инструкции для процессора, специальная программа – **препроцессор** – проходит по всему твоему коду.
+    
+3. **Подстановка:** Когда препроцессор встречает имя макроса, он заменяет это имя на тот текст (код), который был указан в определении макроса.
+    
+    - Если это функциональный макрос, аргументы также подставляются в тело макроса.
+4. **Компиляция:** После того как препроцессор выполнил все замены, измененный код (уже без макросов, а с подставленным кодом) передается компилятору для обычной компиляции.
+
+- **`UCLASS()`, `USTRUCT()`, `UENUM()`:** Эти макросы сообщают Unreal Header Tool (UHT), что нужно сгенерировать дополнительный код для системы отражения, сборки мусора, интеграции с Blueprints и т.д. для этих классов, структур и перечислений.
+- **`UPROPERTY(...)`:** Сообщает UHT, что это свойство должно быть видимо для системы отражения, редактора, Blueprints, сети и т.д., в зависимости от параметров.
+- **`UFUNCTION(...)`:** Аналогично для функций.
+- **`GENERATED_BODY()`, `GENERATED_UCLASS_BODY()`, `GENERATED_USTRUCT_BODY()`:** Эти макросы вставляют код, сгенерированный UHT, в твои классы и структуры.
+- **`UE_LOG(...)`:** Макрос для логирования.
+- **`check(...)`, `ensure(...)`:** Макросы для проверок и ассертов.
+- **`TEXT(...)`:** Макрос для создания строковых литералов, совместимых с разными кодировками символов, используемыми в UE.
+- **`_API` макросы (например, `MYPROJECT_API`):** Используются для экспорта символов из DLL, чтобы их можно было использовать в других модулях.
+
+### Макрос. NAMEGAME_API
+
+если пройти по нему, в нем есть другой макрос, который имеет значение компиляции под разные платформы
+
+![[Pasted image 20250513204514.png]]
+
+экспорт под windows
+что означает что наш класс может быть экспортирован как dll файл 
+
+![[Pasted image 20250513204608.png]]
+
+Если проект не компилируется, можно перегенировать stl файл 
+
+так же если при начале визаул не понимает какой проект является main 
+
+![[Pasted image 20250513204912.png]]
+
 
 ## Garbage Collector
 ---
+Unreal Object Handling
 
-![[Pasted image 20241214220752.png]]
+https://dev.epicgames.com/documentation/en-us/unreal-engine/unreal-object-handling-in-unreal-engine?application_version=5.4
+
+Это специальный процесс, который очищает память. Когда актор или компонент, все указатели и которые видны в reflection system анрила, те UPROPERTY автоматически зануляться 
+
+
+![[Pasted image 20250513222456.png]]
 
 Start
 
@@ -1647,6 +2740,8 @@ GeometryHubActor.h
 ```cpp
 
 private:
+	//этот лог не будет собран сборщиком мусора, так как он не относится к макросу 
+	//uproperty не помечен им. Как умным указателем 
 	ABaseGeometryActor* NonePropertyActor;
 	
 	UPROPERTY()
@@ -1719,7 +2814,6 @@ AllowShortIfStatementsOnASingleLine: true
 ## Gitignore
 ---
 [[Gitignore]]
-
 
 ## ACharacter
 ---

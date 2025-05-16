@@ -2,12 +2,17 @@ Abstract - конспект. Этот файл коспект использов
 
 alt + t hot key 
 
->    - [[CppUnAbstract#Создание с++ актора в UE|Создание с++ актора в UE]]
->    - [[CppUnAbstract#Структура класса |Структура класса ]]
->        - [[CppUnAbstract#Super|Super]]
+>    - [[CppUnAbstract#Разное|Разное]]
+>        - [[CppUnAbstract#Названия всех компонентов нужных для подключения к анрилу|Названия всех компонентов нужных для подключения к анрилу]]
+>        - [[CppUnAbstract#Поиск include в директории папок |Поиск include в директории папок ]]
+>        - [[CppUnAbstract#Проверки на основные части кода, существуют ли они |Проверки на основные части кода, существуют ли они ]]
+>        - [[CppUnAbstract#Destroy Actor|Destroy Actor]]
 >    - [[CppUnAbstract#Горячие клавиши|Горячие клавиши]]
 >        - [[CppUnAbstract#f12 провалится в класс и посмотреть его исходный код|f12 провалится в класс и посмотреть его исходный код]]
 >        - [[CppUnAbstract#Вылететь в управление, во время игры. Shift + F1|Вылететь в управление, во время игры. Shift + F1]]
+>    - [[CppUnAbstract#Создание с++ актора в UE|Создание с++ актора в UE]]
+>    - [[CppUnAbstract#Структура класса |Структура класса ]]
+>        - [[CppUnAbstract#Super|Super]]
 >    - [[CppUnAbstract#Логирование. Макрос в UE|Логирование. Макрос в UE]]
 >    - [[CppUnAbstract#Создание функции|Создание функции]]
 >    - [[CppUnAbstract#Собственная категория логирования|Собственная категория логирования]]
@@ -62,23 +67,143 @@ alt + t hot key
 >    - [[CppUnAbstract#Check|Check]]
 >    - [[CppUnAbstract#Указать границы |Указать границы ]]
 >    - [[CppUnAbstract#TakeDamage|TakeDamage]]
->    - [[CppUnAbstract#Разное|Разное]]
->    - [[CppUnAbstract#- склейка двух элементов |- склейка двух элементов ]]
+>    - [[CppUnAbstract#Apply Damage, DebugSphere|Apply Damage, DebugSphere]]
+>    - [[CppUnAbstract#UDamageType|UDamageType]]
+>    - [[CppUnAbstract#Death, AnimMontage, Delegate in c++ only |Death, AnimMontage, Delegate in c++ only ]]
+>    - [[CppUnAbstract#Spectator Pawn. Переключение на наблюдателя|Spectator Pawn. Переключение на наблюдателя]]
+>    - [[CppUnAbstract#AutoHeal|AutoHeal]]
+>    - [[CppUnAbstract#LandedDelegate, получение урона от падения|LandedDelegate, получение урона от падения]]
+>    - [[CppUnAbstract#Class Weapon, Spawn Weapon in Hand |Class Weapon, Spawn Weapon in Hand ]]
+>    - [[CppUnAbstract#class AHUD, прицел, crosshair|class AHUD, прицел, crosshair]]
+>    - [[CppUnAbstract#UWeaponComponent. Компонент оружия |UWeaponComponent. Компонент оружия ]]
 
 
-## Создание с++ актора в UE
+## Разное
+---
 
-![[Pasted image 20250510153256.png]]
-
-## Структура класса 
-
-### Super
-
-это алиас на имя базового класса, класса родителя, в классичесом c++ это пишется. Позволяет обращаться ко всем функциям базового класса, через ключевое слово super 
+### Названия всех компонентов нужных для подключения к анрилу
 
 ```
-Super::BeginPlay();
-AActor::BeginPlay();
+ 1. 🧱 **Desktop development with C++**
+
+> Основная нагрузка, включает компилятор MSVC, Windows SDK, и базовые инструменты CMake/Ninja.
+
+✅ Обязательно установить!
+
+---
+
+ 2. 🧰 **.NET Desktop Development**
+
+> Нужна для работы Unreal Build Tool (UBT), генерации проектов и инфраструктуры Visual Studio.
+
+✅ Обязательно установить!
+
+ Компиляторы и инструменты
+
+- ✅ MSVC v143 - VS 2022 C++ x64/x86 build tools (latest)
+    
+- ✅ Windows 10 SDK (10.0.19041.0 или новее)
+    
+- ✅ C++ CMake tools for Windows
+    
+- ✅ C++/CLI support (если используете CLI)
+    
+- ✅ C++ ATL для последних версий Windows
+    
+- ✅ C++ MFC для последних версий Windows
+    
+
+ 📁 Системные и средовые компоненты
+
+- ✅ .NET Framework 4.8 SDK
+    
+- ✅ .NET Framework 4.8 Targeting Pack
+    
+- ✅ .NET 6.0 Runtime (или выше) Его нет в visual studio, нужно подрубать руками 
+    
+- ✅ MSBuild
+    
+- ✅ Git for Windows (если вы не установили Git отдельно)
+    
+
+ 🧩 Разное
+
+- ✅ Unreal Engine Installer (опционально)
+    
+- ✅ Visual Studio core editor
+    
+- ✅ Just-In-Time Debugger
+    
+- ✅ NuGet package manager
+    
+- ✅ Windows Universal CRT SDK
+
+После установки/обновления компонентов желательно **перегенерировать проект**:  
+ПКМ по `.uproject` → **Generate Visual Studio project files**.
+```
+
+### Поиск include в директории папок 
+
+в build.cs можно указать 
+
+```cpp
+// Shoot Them Up Game, All Right Reserved.
+
+using UnrealBuildTool;
+
+public class STU : ModuleRules
+{
+	public STU(ReadOnlyTargetRules Target) : base(Target)
+	{
+		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
+	
+		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore" });
+
+		PrivateDependencyModuleNames.AddRange(new string[] {  });
+
+		//при билде поиск #include в указанных папках
+		PublicIncludePaths.AddRange(new string[] { "STU/Character", "STU/Player" });
+
+		// Uncomment if you are using Slate UI
+		// PrivateDependencyModuleNames.AddRange(new string[] { "Slate", "SlateCore" });
+		
+		// Uncomment if you are using online features
+		// PrivateDependencyModuleNames.Add("OnlineSubsystem");
+
+		// To include OnlineSubsystemSteam, add it to the plugins section in your uproject file with the Enabled attribute set to true
+	}
+}
+
+```
+
+```C++
+include "CoreMinimal.h" //определены некоторые базы данных константы
+include "GameFramework/Actor.h" //наследуемся от актора, указывает заголовочный файл где объявлен актор 
+include "BaseGeometryActor.generated.h" //идет последним всегда 
+```
+
+исполняемый файл подключается 1 раз
+`#pragma once `
+
+```
+"##" - склейка двух элементов 
+```
+
+### Проверки на основные части кода, существуют ли они 
+
+![[Pasted image 20241130032849.png]]
+
+![[Pasted image 20241130032826.png]]
+
+![[Pasted image 20241130033001.png]]
+
+### Destroy Actor
+
+```cpp
+
+	Geometry->Destroy();
+	//Geometry->SetLifeSpan(2.0f)
+
 ```
 
 ## Горячие клавиши
@@ -102,6 +227,21 @@ https://www.unrealengine.com/en-US/tech-blog/designer-s-guide-to-unreal-engine-k
 
 ![[Pasted image 20250513175029.png]]
 
+
+## Создание с++ актора в UE
+
+![[Pasted image 20250510153256.png]]
+
+## Структура класса 
+
+### Super
+
+это алиас на имя базового класса, класса родителя, в классичесом c++ это пишется. Позволяет обращаться ко всем функциям базового класса, через ключевое слово super 
+
+```
+Super::BeginPlay();
+AActor::BeginPlay();
+```
 
 ## Логирование. Макрос в UE
 ---
@@ -2783,8 +2923,16 @@ void AGeometryHubActor::Tick(float DeltaTime)
 }
 ```
 
+я сейчас смотрю логику построения папок в lyra starter game от эпиков и там нет никаких public private папок в директории. Там сразу идут папки с системами, и в системе сразу лежит рядом как .h так и .cpp файл. В целом это читабельнее и удобнее. Но меня интересует почему их нет, как это влияет на систему, зачем нужны эти тогда вообще папки, или в новых стандартах их вообще просто никто не использует
+
 ## Clang Format 
 ---
+
+https://dev.epicgames.com/documentation/en-us/unreal-engine/epic-cplusplus-coding-standard-for-unreal-engine?application_version=5.4
+
+ctr+r , ctrl + w
+
+точки как пробелы 
 
 В настройках версии visual studio иногда нужно включить поддержку clang format и в настройках тоже включить галку enable clang format supp
 
@@ -3182,63 +3330,1488 @@ https://dev.epicgames.com/documentation/en-us/unreal-engine/asserts-in-unreal-en
 ## TakeDamage
 ---
 
+character.cpp
+
+```cpp
+// Called every frame
+void ASTUBaseCharacter::Tick(float DeltaTime)
+{
+    Super::Tick(DeltaTime);
+
+    const auto Health = HealthComponent->GetHealth();
+    //показ текста над персонажем текстом 
+    HealthTextComponent->SetText(FText::FromString(FString::Printf(TEXT("%.0f"), Health)));
+
+    //нанесение урона 
+    //кол вот урона, у FDamageEvent есть <class UDamageType>, с ним можно сделать тип урона 
+    //от него можно сделать собственный класс и свою проигровку получения урона 
+    //FRadialDamageParams получение урона по радиусу 
+    //затем указатель на Controller, кто нанес ущерб, можно узнать из какой команды
+    //кому нанесен урон, себе this
+    TakeDamage(0.1f, FDamageEvent{}, Controller, this);
+}
+```
+
 Берем существующую функцию OnTakeDamage
 
 STUHealthComponent.h
 
 ```cpp
+// Shoot Them Up Game, All Right Reserved.
+
+#pragma once
+
+#include "CoreMinimal.h"
+#include "Components/ActorComponent.h"
+#include "STUHealthComponent.generated.h"
+
+UCLASS(ClassGroup = (Custom), meta = (BlueprintSpawnableComponent))
+class STU_API USTUHealthComponent : public UActorComponent
+{
+    GENERATED_BODY()
+
+public:
+    USTUHealthComponent();
+
+    //фукнция возвращается значение health
+    float GetHealth() const { return Health; }
+
+protected:
+    UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Health", meta = (ClampMin = "0", ClampMax = "1000.0"))
+    float MaxHealth = 100.0f;
+
+    virtual void BeginPlay() override;
+
+private:
+    float Health = 0.0f;
+
+    //берем настройки у делегата OnTakeAnyDamage, их берем для удобства
+    //актор, который получил урон
+    //урон
+    //тип урона
+    //какой контроллер нанес урон
+    //актор который нанес урон
     UFUNCTION()
-    void OnTakeAnyDamage(
-        AActor* DamagedActor, float Damage, const class UDamageType* DamageType, class AController* InstigatedBy, AActor* DamageCauser);
+    void OnTakeAnyDamage(AActor* DamagedActor, float Damage, const class UDamageType* DamageType, class AController* InstigatedBy, AActor* DamageCauser);
+};
+
 ```
 
 STUHealthComponent.cpp
 
 ```cpp
-	AActor* ComponentOwner = GetOwner();
-      if (ComponentOwner)
-      {
-          ComponentOwner->OnTakeAnyDamage.AddDynamic(this, &USTUHealthComponent::OnTakeAnyDamage);
-	  }
+// Shoot Them Up Game, All Right Reserved.
 
-void USTUHealthComponent::OnTakeAnyDamage(
-    AActor* DamagedActor, float Damage, const class UDamageType* DamageType, class AController* InstigatedBy, AActor* DamageCauser)
+#include "STUHealthComponent.h"
+#include "GameFramework/Actor.h"
+
+USTUHealthComponent::USTUHealthComponent()
 {
+    //tick не нужен
+    PrimaryComponentTick.bCanEverTick = false;
+}
+
+// Called when the game starts
+void USTUHealthComponent::BeginPlay()
+{
+    Super::BeginPlay();
+
+    Health = MaxHealth;
+
+    //подписываемся на делегат OnTakeAnyDamage
+    //и вызываем функцию при срабатывании OnTakeAnyDamage
+    //ComponentOwner возвращает указатель функции на компонент
+    //если он не нулевой, можем подписаться на делегат данного актора
+    AActor* ComponentOwner = GetOwner();
+    if (ComponentOwner)
+    {
+        ComponentOwner->OnTakeAnyDamage.AddDynamic(this, &USTUHealthComponent::OnTakeAnyDamage);
+    }
+}
+
+//эта функция вызывается каждый раз когда мы получаем любой урон, так как подписаны на делегат OnTakeAnyDamage
+//а он вызывается внутри анриловской функции TakeDamage
+void USTUHealthComponent::OnTakeAnyDamage(AActor* DamagedActor, float Damage, const UDamageType* DamageType, AController* InstigatedBy, AActor* DamageCauser)
+{
+    //UE_LOG(BaseCharacterLog, Display, TEXT("Damage: %f"), Damage);
+    //уменьшаем здоровье на дамаг
     Health -= Damage;
 }
 ```
 
-## Разное
----
+## Apply Damage, DebugSphere
 
-```C++
-include "CoreMinimal.h" //определены некоторые базы данных константы
-include "GameFramework/Actor.h" //наследуемся от актора, указывает заголовочный файл где объявлен актор 
-include "BaseGeometryActor.generated.h" //идет последним всегда 
-```
-
-исполняемый файл подключается 1 раз
-`#pragma once `
-
-```
-## - склейка двух элементов 
-```
-
-f12 - позволяет открыть код любого макроса и увидеть как он написан
-
-Проверки на основные части кода, существуют ли они 
-
-![[Pasted image 20241130032849.png]]
-
-![[Pasted image 20241130032826.png]]
-
-![[Pasted image 20241130033001.png]]
-
-Destroy Actor
+.h
 
 ```cpp
 
-	Geometry->Destroy();
-	//Geometry->SetLifeSpan(2.0f)
+// Shoot Them Up Game, All Right Reserved.
+
+#pragma once
+
+#include "CoreMinimal.h"
+#include "GameFramework/Actor.h"
+#include "STUDevDamageActor.generated.h"
+
+UCLASS()
+class STU_API ASTUDevDamageActor : public AActor
+{
+    GENERATED_BODY()
+
+public:
+    // Sets default values for this actor's properties
+    ASTUDevDamageActor();
+
+    //переменная для xyz
+    UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+    USceneComponent* SceneComponent;
+
+
+    //настройки для дебаг
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    float Radius = 300.0f;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    FColor SphereColor = FColor::Red;
+
+    //настройки для дамага
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    float Damage = 10.0f;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    bool DoFullDamage = false;
+
+protected:
+    // Called when the game starts or when spawned
+    virtual void BeginPlay() override;
+
+public:
+    // Called every frame
+    virtual void Tick(float DeltaTime) override;
+
+};
 
 ```
+
+.cpp
+
+```cpp
+// Shoot Them Up Game, All Right Reserved.
+
+#include "STUDevDamageActor.h"
+//с помощью него можно рисовать дебаг
+#include "DrawDebugHelpers.h"
+#include "Kismet/GameplayStatics.h"
+
+DEFINE_LOG_CATEGORY_STATIC(LogDevDamageActor, All, All);
+
+
+// Sets default values
+ASTUDevDamageActor::ASTUDevDamageActor()
+{
+    // Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
+    PrimaryActorTick.bCanEverTick = true;
+
+    //подключение xyz сцены
+    SceneComponent = CreateDefaultSubobject<USceneComponent>("SceneComponent");
+    SetRootComponent(SceneComponent);
+
+    //смещение локации вверх на 100
+    SceneComponent->SetRelativeLocation(FVector(0.0f, 0.0f, 100.0f));
+}
+
+// Called when the game starts or when spawned
+void ASTUDevDamageActor::BeginPlay()
+{
+    Super::BeginPlay();
+}
+
+// Called every frame
+void ASTUDevDamageActor::Tick(float DeltaTime)
+{
+    Super::Tick(DeltaTime);
+
+    DrawDebugSphere(GetWorld(), GetActorLocation(), Radius, 24, SphereColor);
+
+    //получение урона 
+    UGameplayStatics::ApplyRadialDamage(GetWorld(), Damage, GetActorLocation(), Radius, nullptr, {}, this, nullptr, DoFullDamage);
+
+    //UE_LOG(LogDevDamageActor, Display, TEXT("I hit damage: %f"), Damage);
+
+}
+
+```
+
+![[Pasted image 20250515094427.png]]
+
+## UDamageType
+
+.h
+
+```cpp
+// Shoot Them Up Game, All Right Reserved.
+
+#pragma once
+
+#include "CoreMinimal.h"
+#include "GameFramework/Actor.h"
+#include "STUDevDamageActor.generated.h"
+
+UCLASS()
+class STU_API ASTUDevDamageActor : public AActor
+{
+    GENERATED_BODY()
+
+public:
+    // Sets default values for this actor's properties
+    ASTUDevDamageActor();
+
+    //переменная для xyz
+    UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+    USceneComponent* SceneComponent;
+
+
+    //настройки для дебаг
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    float Radius = 300.0f;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    FColor SphereColor = FColor::Red;
+
+    //настройки для дамага
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    float Damage = 10.0f;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    bool DoFullDamage = false;
+
+    //шаблонный класс DamageType
+    //принимающий различные виды урона
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    TSubclassOf<UDamageType> DamageType;
+
+protected:
+    // Called when the game starts or when spawned
+    virtual void BeginPlay() override;
+
+public:
+    // Called every frame
+    virtual void Tick(float DeltaTime) override;
+
+};
+
+```
+
+.cpp
+
+```cpp
+// Shoot Them Up Game, All Right Reserved.
+
+#include "STUHealthComponent.h"
+#include "GameFramework/Actor.h"
+#include "STU/Dev/STUFireDamageType.h"
+#include "STU/Dev/STUIceDamageType.h"
+
+DEFINE_LOG_CATEGORY_STATIC(LogHealthComponent, All, All);
+
+USTUHealthComponent::USTUHealthComponent()
+{
+    //tick не нужен
+    PrimaryComponentTick.bCanEverTick = false;
+}
+
+// Called when the game starts
+void USTUHealthComponent::BeginPlay()
+{
+    Super::BeginPlay();
+
+    Health = MaxHealth;
+
+    //подписываемся на делегат OnTakeAnyDamage
+    //и вызываем функцию при срабатывании OnTakeAnyDamage
+    //ComponentOwner возвращает указатель функции на компонент
+    //если он не нулевой, можем подписаться на делегат данного актора
+    AActor* ComponentOwner = GetOwner();
+    if (ComponentOwner)
+    {
+        ComponentOwner->OnTakeAnyDamage.AddDynamic(this, &USTUHealthComponent::OnTakeAnyDamage);
+    }
+}
+
+//эта функция вызывается каждый раз когда мы получаем любой урон, так как подписаны на делегат OnTakeAnyDamage
+//а он вызывается внутри анриловской функции TakeDamage
+void USTUHealthComponent::OnTakeAnyDamage(AActor* DamagedActor, float Damage, const UDamageType* DamageType, AController* InstigatedBy, AActor* DamageCauser)
+{
+    //UE_LOG(LogHealthComponent, Display, TEXT("Damage: %f"), Damage);
+
+    if (DamageType)
+    {
+        float CurrentDamage = Damage;
+
+        //проверяем относиться ли переданный DamageType к STUFireDamageType
+        //сравнение с soft class
+        if (DamageType->IsA<USTUFireDamageType>())
+        {
+            //уменьшаем здоровье на дамаг
+            CurrentDamage = Damage + 50.0f;
+            Health -= CurrentDamage;
+            UE_LOG(LogHealthComponent, Display, TEXT("Fire damage! %f"), CurrentDamage);
+        }
+        else if (DamageType->IsA<USTUIceDamageType>())
+        {
+            CurrentDamage = Damage + 50.0f;
+            Health -= CurrentDamage;
+            UE_LOG(LogHealthComponent, Display, TEXT("Ice damage! %f"), CurrentDamage);
+        }
+        else
+        {
+            //во всех остальных случаях, но лучше ввести новый тип, который будет отвечать за другой любой урон
+            //так как DamageType на входе не nullptr всегда
+            Health -= Damage;
+            UE_LOG(LogHealthComponent, Display, TEXT("Damage!!! %f"), Damage);
+        }
+    }
+}
+```
+
+## Death, AnimMontage, Delegate in c++ only 
+
+healthcomponent.h
+
+```cpp
+// Shoot Them Up Game, All Right Reserved.
+
+#pragma once
+
+#include "CoreMinimal.h"
+#include "Components/ActorComponent.h"
+#include "STUHealthComponent.generated.h"
+
+//делегат на смерть персонажа
+DECLARE_MULTICAST_DELEGATE(FOnDeath)
+//делегат, когда меняются жизни персонажа
+//с помощью него можно убрать логику с тика, на проверку здоровья 
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnHealthChanged, float)
+
+UCLASS(ClassGroup = (Custom), meta = (BlueprintSpawnableComponent))
+class STU_API USTUHealthComponent : public UActorComponent
+{
+    GENERATED_BODY()
+
+public:
+    USTUHealthComponent();
+
+    //фукнция возвращается значение health
+    float GetHealth() const { return Health; }
+
+    UFUNCTION(BlueprintCallable)
+    bool IsDead() const { return Health <= 0.0f; }
+
+    FOnDeath OnDeath;
+    FOnHealthChanged OnHealthChanged;
+
+protected:
+    UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Health", meta = (ClampMin = "0", ClampMax = "1000.0"))
+    float MaxHealth = 100.0f;
+
+    virtual void BeginPlay() override;
+
+private:
+    float Health = 0.0f;
+
+    //берем настройки у делегата OnTakeAnyDamage, их берем для удобства
+    //актор, который получил урон
+    //урон
+    //тип урона
+    //какой контроллер нанес урон
+    //актор который нанес урон
+    UFUNCTION()
+    void OnTakeAnyDamage(AActor* DamagedActor, float Damage, const class UDamageType* DamageType, class AController* InstigatedBy, AActor* DamageCauser);
+    };
+
+```
+
+healthcomponent.cpp
+
+```cpp
+// Shoot Them Up Game, All Right Reserved.
+
+#include "STUHealthComponent.h"
+#include "GameFramework/Actor.h"
+//#include "STU/Dev/STUFireDamageType.h"
+//#include "STU/Dev/STUIceDamageType.h"
+
+DEFINE_LOG_CATEGORY_STATIC(LogHealthComponent, All, All);
+
+USTUHealthComponent::USTUHealthComponent()
+{
+    //tick не нужен
+    PrimaryComponentTick.bCanEverTick = false;
+}
+
+// Called when the game starts
+void USTUHealthComponent::BeginPlay()
+{
+    Super::BeginPlay();
+
+    Health = MaxHealth;
+    //первый раз устанавливаются жизни, поэтому выводит этот делегат
+    //что у нас изменилось количество хп 
+    OnHealthChanged.Broadcast(Health);
+
+    //подписываемся на делегат OnTakeAnyDamage
+    //и вызываем функцию при срабатывании OnTakeAnyDamage
+    //ComponentOwner возвращает указатель функции на компонент
+    //если он не нулевой, можем подписаться на делегат данного актора
+    AActor* ComponentOwner = GetOwner();
+    if (ComponentOwner)
+    {
+        ComponentOwner->OnTakeAnyDamage.AddDynamic(this, &USTUHealthComponent::OnTakeAnyDamage);
+    }
+}
+
+//эта функция вызывается каждый раз когда мы получаем любой урон, так как подписаны на делегат OnTakeAnyDamage
+//а он вызывается внутри анриловской функции TakeDamage
+void USTUHealthComponent::OnTakeAnyDamage(AActor* DamagedActor, float Damage, const UDamageType* DamageType, AController* InstigatedBy, AActor* DamageCauser)
+{
+    //UE_LOG(LogHealthComponent, Display, TEXT("Damage: %f"), Damage);
+
+    //Если урон меньше или равен нулю ИЛИ персонаж уже мертв, то прекратить выполнение этой функции и вернуться
+    //пока урон есть или персонаж жив, наносить ему урон в размере  
+    //сообщить что получен урон
+    if (Damage <= 0.0f || IsDead()) return;
+
+    Health = FMath::Clamp(Health - Damage, 0.0f, MaxHealth);
+    OnHealthChanged.Broadcast(Health);
+}
+```
+
+character.h
+
+```cpp
+// Shoot Them Up Game, All Right Reserved.
+
+#pragma once
+
+#include "CoreMinimal.h"
+#include "GameFramework/Character.h"
+#include "STUBaseCharacter.generated.h"
+
+//указываем заранее классы
+class UCameraComponent;
+class USpringArmComponent;
+class USTUHealthComponent;
+class UTextRenderComponent;
+
+UCLASS()
+class STU_API ASTUBaseCharacter : public ACharacter
+{
+    GENERATED_BODY()
+
+public:
+    // Sets default values for this character's properties
+    ASTUBaseCharacter(const FObjectInitializer& ObjInit);
+
+protected:
+    //создание камеры
+    UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Components")
+    USpringArmComponent* SpringArmComponent;
+
+    UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Components")
+    UCameraComponent* CameraComponent;
+
+    UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Components")
+    USTUHealthComponent* HealthComponent;
+
+    //показ количества хп у персонажа
+    UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Components")
+    UTextRenderComponent* HealthTextComponent;
+
+    UPROPERTY(EditDefaultsOnly, Category = "Animation")
+    UAnimMontage* DeathAnimMontage;
+
+    // Called when the game starts or when spawned
+    virtual void BeginPlay() override;
+
+public:
+    // Called every frame
+    virtual void Tick(float DeltaTime) override;
+
+    // Called to bind functionality to input
+    virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+
+    UFUNCTION(BlueprintCallable, Category = "Movement")
+    bool IsRunning() const;
+
+    UFUNCTION(BlueprintCallable, Category = "Movement")
+    float GetMovementDirection() const;
+
+private:
+    //переменные для ускорение персонажа
+    bool WantsToRun = false;
+    bool IsMovingForward = false;
+
+    //функции на передвижения в стороны
+    void MoveForward(float Amount);
+    void MoveRight(float Amount);
+
+    //функции на ускорение персонажа
+    void OnStartRunning();
+    void OnStopRunning();
+
+    //функция на смерть персонажа
+    void OnDeath();
+     
+    //функция на изменение хп персонажа
+    void OnHealthChanged(float Health);
+};
+
+```
+
+character.cpp
+
+```cpp
+// Shoot Them Up Game, All Right Reserved.
+
+#include "STUBaseCharacter.h"
+#include "Camera/CameraComponent.h"
+#include "Components/InputComponent.h"
+#include "GameFramework/SpringArmComponent.h"
+#include "STU_CharacterMovementComponent.h"
+#include "STUHealthComponent.h"
+#include "Components/TextRenderComponent.h"
+
+DEFINE_LOG_CATEGORY_STATIC(BaseCharacterLog, All, All);
+
+// Sets default values
+ASTUBaseCharacter::ASTUBaseCharacter(const FObjectInitializer& ObjInit)
+    : Super(ObjInit.SetDefaultSubobjectClass<USTU_CharacterMovementComponent>(ACharacter::CharacterMovementComponentName))
+{
+    PrimaryActorTick.bCanEverTick = true;
+
+    SpringArmComponent = CreateDefaultSubobject<USpringArmComponent>("SpringArmComponent");
+    SpringArmComponent->SetupAttachment(GetRootComponent());
+    SpringArmComponent->bUsePawnControlRotation = true;
+
+    //attach к корневому компоненту
+    CameraComponent = CreateDefaultSubobject<UCameraComponent>("CameraComponent");
+    CameraComponent->SetupAttachment(SpringArmComponent);
+
+    HealthComponent = CreateDefaultSubobject<USTUHealthComponent>("HealthComponent");
+
+    HealthTextComponent = CreateDefaultSubobject<UTextRenderComponent>("HealthTextComponent");
+    HealthTextComponent->SetupAttachment(GetRootComponent());
+}
+
+// Called when the game starts or when spawned
+void ASTUBaseCharacter::BeginPlay()
+{
+    Super::BeginPlay();
+
+    //проверка на 0 компоненты, работают только в девелоп билдак
+    //не сбилдиться, если не подключен
+    check(HealthComponent);
+    check(HealthTextComponent);
+    check(GetCharacterMovement());
+
+    OnHealthChanged(HealthComponent->GetHealth());
+
+    //подписываемся в начале на получение сообщения от делегатов 
+    //вызов функции при получении сообщения сметри персонажа с делегата, вызов функции OnDeath
+    //AddUObject такой вызов потому что мы обращаемся к делегату, только в C++
+    HealthComponent->OnDeath.AddUObject(this, &ASTUBaseCharacter::OnDeath);
+
+    //делагат на получение урона
+    HealthComponent->OnHealthChanged.AddUObject(this, &ASTUBaseCharacter::OnHealthChanged);
+}
+
+// Called every frame
+void ASTUBaseCharacter::Tick(float DeltaTime)
+{
+    Super::Tick(DeltaTime);
+}
+
+void ASTUBaseCharacter::OnDeath()
+{
+    UE_LOG(BaseCharacterLog, Display, TEXT("Player %s is dead"), *GetName());
+
+    //проиграть анимацию
+    PlayAnimMontage(DeathAnimMontage);
+
+    //останавка всего движения
+    GetCharacterMovement()->DisableMovement();
+
+    //уничтожение персонажа, через 5 сек
+    SetLifeSpan(5.0f);
+}
+
+void ASTUBaseCharacter::OnHealthChanged(float Health)
+{
+    //показ текста над персонажем текстом
+    HealthTextComponent->SetText(FText::FromString(FString::Printf(TEXT("%.0f"), Health)));
+}
+
+```
+
+
+![[Pasted image 20250515120830.png]]
+
+![[Pasted image 20250515120821.png]]
+
+очень важно что бы название слота было также как и монтажа 
+
+![[Pasted image 20250515120856.png]]
+
+![[Pasted image 20250515120923.png]]
+
+Аним монтаж в конце остановится и поза не изменится 
+
+![[Pasted image 20250515121012.png]]
+
+## Spectator Pawn. Переключение на наблюдателя
+
+
+```cpp
+#include "GameFramework/Controller.h"
+
+void ASTUBaseCharacter::OnDeath()
+{
+    UE_LOG(BaseCharacterLog, Display, TEXT("Player %s is dead"), *GetName());
+
+    //проиграть анимацию
+    PlayAnimMontage(DeathAnimMontage);
+
+    //останавка всего движения
+    GetCharacterMovement()->DisableMovement();
+
+    //уничтожение персонажа, через 5 сек
+    SetLifeSpan(5.0f);
+
+    //при смерти переключение на стандартный режим наблюдателя 
+    //если зайти по пути controller - ctrl +f ChangeState - f12 -BeginSpectatingState
+    //можно увидеть то как запускается функция UnPosses() и удаляется старый pawn
+    if (Controller)
+    {
+        Controller->ChangeState(NAME_Spectating);
+    }
+}
+```
+
+![[Pasted image 20250515125058.png]]
+
+## AutoHeal
+
+healthComponent.h
+
+```cpp
+// Shoot Them Up Game, All Right Reserved.
+
+#pragma once
+
+#include "CoreMinimal.h"
+#include "Components/ActorComponent.h"
+#include "STUHealthComponent.generated.h"
+
+//делегат на смерть персонажа
+DECLARE_MULTICAST_DELEGATE(FOnDeath);
+//делегат, когда меняются жизни персонажа
+//с помощью него можно убрать логику с тика, на проверку здоровья
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnHealthChanged, float);
+
+UCLASS(ClassGroup = (Custom), meta = (BlueprintSpawnableComponent))
+class STU_API USTUHealthComponent : public UActorComponent
+{
+    GENERATED_BODY()
+
+public:
+    USTUHealthComponent();
+
+    //фукнция возвращается значение health
+    float GetHealth() const { return Health; }
+
+    UFUNCTION(BlueprintCallable)
+    bool IsDead() const { return FMath::IsNearlyZero(Health); }
+
+    FOnDeath OnDeath;
+    FOnHealthChanged OnHealthChanged;
+
+protected:
+    UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Health", meta = (ClampMin = "0", ClampMax = "1000.0"))
+    float MaxHealth = 100.0f;
+
+    //включать ли добавление здоровья
+    UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Heal")
+    bool AutoHeal = true;
+
+    //частота прибавления здоровья
+    UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Heal", meta = (EditCondition = "AutoHeal"))
+    float HealUpdateTime = 0.3f;
+
+    //задержка перед добавлением здоровья
+    UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Heal", meta = (EditCondition = "AutoHeal"))
+    float HealDelay = 3.0f;
+
+    //сколько за один раз прибавляется здоровья
+    UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Heal", meta = (EditCondition = "AutoHeal"))
+    float HealModifier = 1.0f;
+
+    virtual void BeginPlay() override;
+
+private:
+    float Health = 0.0f;
+
+    //таймер Heal
+    FTimerHandle TimerHeal;
+
+    //берем настройки у делегата OnTakeAnyDamage, их берем для удобства
+    //актор, который получил урон
+    //урон
+    //тип урона
+    //какой контроллер нанес урон
+    //актор который нанес урон
+    UFUNCTION()
+    void OnTakeAnyDamage(AActor* DamagedActor, float Damage, const class UDamageType* DamageType, class AController* InstigatedBy, AActor* DamageCauser);
+
+    void OnTimerHeal();
+    void SetHealth(float NewHealth);
+};
+
+```
+
+healthComponent.cpp
+
+```cpp
+// Shoot Them Up Game, All Right Reserved.
+
+#include "STUHealthComponent.h"
+#include "GameFramework/Actor.h"
+
+#include "Engine/World.h"
+#include "TimerManager.h"
+//#include "STU/Dev/STUFireDamageType.h"
+//#include "STU/Dev/STUIceDamageType.h"
+
+DEFINE_LOG_CATEGORY_STATIC(LogHealthComponent, All, All);
+
+USTUHealthComponent::USTUHealthComponent()
+{
+    //tick не нужен
+    PrimaryComponentTick.bCanEverTick = false;
+}
+
+// Called when the game starts
+void USTUHealthComponent::BeginPlay()
+{
+    Super::BeginPlay();
+
+    SetHealth(MaxHealth);
+
+    //подписываемся на делегат OnTakeAnyDamage
+    //и вызываем функцию при срабатывании OnTakeAnyDamage
+    //ComponentOwner возвращает указатель функции на компонент
+    //если он не нулевой, можем подписаться на делегат данного актора
+    //
+    //Референсы на мир и персонажа
+    AActor* ComponentOwner = GetOwner();
+    if (ComponentOwner)
+    {
+        ComponentOwner->OnTakeAnyDamage.AddDynamic(this, &USTUHealthComponent::OnTakeAnyDamage);
+    }
+}
+
+//эта функция вызывается каждый раз когда мы получаем любой урон, так как подписаны на делегат OnTakeAnyDamage
+//а он вызывается внутри анриловской функции TakeDamage
+void USTUHealthComponent::OnTakeAnyDamage(AActor* DamagedActor, float Damage, const UDamageType* DamageType, AController* InstigatedBy, AActor* DamageCauser)
+{
+    //UE_LOG(LogHealthComponent, Display, TEXT("Damage: %f"), Damage);
+
+    //Если урон меньше или равен нулю ИЛИ персонаж уже мертв, то прекратить выполнение этой функции и вернуться
+    //пока урон есть или персонаж жив, наносить ему урон в размере
+    //сообщить что получен урон
+
+    if (Damage <= 0.0f || IsDead() || !GetWorld()) return;
+    SetHealth(Health - Damage);
+    GetWorld()->GetTimerManager().ClearTimer(TimerHeal);
+
+    //оповещаем всех клиентов, что персонаж погиб
+    if (IsDead())
+    {
+        OnDeath.Broadcast();
+    }
+    else if (AutoHeal)
+    {
+        GetWorld()->GetTimerManager().SetTimer(TimerHeal, this, &USTUHealthComponent::OnTimerHeal, HealUpdateTime, true, HealDelay);
+    }
+}
+
+void USTUHealthComponent::OnTimerHeal()
+{
+    SetHealth(Health + HealModifier);
+
+    if (FMath::IsNearlyEqual(Health, MaxHealth) && GetWorld())
+    {
+        GetWorld()->GetTimerManager().ClearTimer(TimerHeal);
+    }
+}
+
+void USTUHealthComponent::SetHealth(float NewHealth)
+{
+    Health = FMath::Clamp(NewHealth, 0.0f, MaxHealth);
+    OnHealthChanged.Broadcast(Health);
+}
+
+```
+
+character.h 
+
+```cpp
+// Shoot Them Up Game, All Right Reserved.
+
+#pragma once
+
+#include "CoreMinimal.h"
+#include "GameFramework/Character.h"
+#include "STUBaseCharacter.generated.h"
+
+//указываем заранее классы
+class UCameraComponent;
+class USpringArmComponent;
+class USTUHealthComponent;
+class UTextRenderComponent;
+
+UCLASS()
+class STU_API ASTUBaseCharacter : public ACharacter
+{
+    GENERATED_BODY()
+
+public:
+    // Sets default values for this character's properties
+    ASTUBaseCharacter(const FObjectInitializer& ObjInit);
+
+protected:
+    //создание камеры
+    UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Components")
+    USpringArmComponent* SpringArmComponent;
+
+    UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Components")
+    UCameraComponent* CameraComponent;
+
+    UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Components")
+    USTUHealthComponent* HealthComponent;
+
+    //показ количества хп у персонажа
+    UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Components")
+    UTextRenderComponent* HealthTextComponent;
+
+    UPROPERTY(EditDefaultsOnly, Category = "Animation")
+    UAnimMontage* DeathAnimMontage;
+
+    // Called when the game starts or when spawned
+    virtual void BeginPlay() override;
+
+public:
+    // Called every frame
+    virtual void Tick(float DeltaTime) override;
+
+    // Called to bind functionality to input
+    virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+
+    UFUNCTION(BlueprintCallable, Category = "Movement")
+    bool IsRunning() const;
+
+    UFUNCTION(BlueprintCallable, Category = "Movement")
+    float GetMovementDirection() const;
+
+private:
+    //переменные для ускорение персонажа
+    bool WantsToRun = false;
+    bool IsMovingForward = false;
+
+    //функции на передвижения в стороны
+    void MoveForward(float Amount);
+    void MoveRight(float Amount);
+
+    //функции на ускорение персонажа
+    void OnStartRunning();
+    void OnStopRunning();
+
+    //функция на смерть персонажа
+    void OnDeath();
+     
+    //функция на изменение хп персонажа
+    void OnHealthChanged(float Health);
+};
+
+```
+
+character.cpp
+
+```cpp
+// Shoot Them Up Game, All Right Reserved.
+
+#include "STUBaseCharacter.h"
+#include "Camera/CameraComponent.h"
+#include "Components/InputComponent.h"
+#include "GameFramework/SpringArmComponent.h"
+#include "STU_CharacterMovementComponent.h"
+#include "STUHealthComponent.h"
+#include "Components/TextRenderComponent.h"
+#include "GameFramework/Controller.h"
+
+DEFINE_LOG_CATEGORY_STATIC(BaseCharacterLog, All, All);
+
+// Sets default values
+ASTUBaseCharacter::ASTUBaseCharacter(const FObjectInitializer& ObjInit)
+    : Super(ObjInit.SetDefaultSubobjectClass<USTU_CharacterMovementComponent>(ACharacter::CharacterMovementComponentName))
+{
+    PrimaryActorTick.bCanEverTick = true;
+
+    SpringArmComponent = CreateDefaultSubobject<USpringArmComponent>("SpringArmComponent");
+    SpringArmComponent->SetupAttachment(GetRootComponent());
+    SpringArmComponent->bUsePawnControlRotation = true;
+
+    //attach к корневому компоненту
+    CameraComponent = CreateDefaultSubobject<UCameraComponent>("CameraComponent");
+    CameraComponent->SetupAttachment(SpringArmComponent);
+
+    HealthComponent = CreateDefaultSubobject<USTUHealthComponent>("HealthComponent");
+
+    HealthTextComponent = CreateDefaultSubobject<UTextRenderComponent>("HealthTextComponent");
+    HealthTextComponent->SetupAttachment(GetRootComponent());
+}
+
+// Called when the game starts or when spawned
+void ASTUBaseCharacter::BeginPlay()
+{
+    Super::BeginPlay();
+
+    //проверка на 0 компоненты, работают только в девелоп билдак
+    //не сбилдиться, если не подключен
+    check(HealthComponent);
+    check(HealthTextComponent);
+    check(GetCharacterMovement());
+
+    OnHealthChanged(HealthComponent->GetHealth());
+
+    //подписываемся в начале на получение сообщения от делегатов
+    //вызов функции при получении сообщения сметри персонажа с делегата, вызов функции OnDeath
+    //AddUObject такой вызов потому что мы обращаемся к делегату, только в C++
+    HealthComponent->OnDeath.AddUObject(this, &ASTUBaseCharacter::OnDeath);
+
+    //делагат на получение урона
+    HealthComponent->OnHealthChanged.AddUObject(this, &ASTUBaseCharacter::OnHealthChanged);
+}
+
+
+void ASTUBaseCharacter::OnHealthChanged(float Health)
+{
+    //показ текста над персонажем текстом
+    HealthTextComponent->SetText(FText::FromString(FString::Printf(TEXT("%.0f"), Health)));
+}
+
+// Called every frame
+void ASTUBaseCharacter::Tick(float DeltaTime)
+{
+    Super::Tick(DeltaTime);
+
+    //нанесение урона
+    //кол вот урона, у FDamageEvent есть <class UDamageType>, с ним можно сделать тип урона
+    //от него можно сделать собственный класс и свою проигровку получения урона
+    //FRadialDamageParams получение урона по радиусу
+    //затем указатель на Controller, кто нанес ущерб, можно узнать из какой команды
+    //кому нанесен урон, себе this
+    //TakeDamage(0.1f, FDamageEvent{}, Controller, this);
+}
+
+// Called to bind functionality to input
+void ASTUBaseCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
+{
+    Super::SetupPlayerInputComponent(PlayerInputComponent);
+
+    if (PlayerInputComponent)
+    {
+        //вызов функции в зависимости от нажатии клавиши и где это будет вызываться this
+        PlayerInputComponent->BindAxis("MoveForward", this, &ASTUBaseCharacter::MoveForward);
+        PlayerInputComponent->BindAxis("MoveRight", this, &ASTUBaseCharacter::MoveRight);
+        PlayerInputComponent->BindAxis("LookUp", this, &ASTUBaseCharacter::AddControllerPitchInput);
+        PlayerInputComponent->BindAxis("TurnAround", this, &ASTUBaseCharacter::AddControllerYawInput);
+        PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &ASTUBaseCharacter::Jump);
+        PlayerInputComponent->BindAction("Run", IE_Pressed, this, &ASTUBaseCharacter::OnStartRunning);
+        PlayerInputComponent->BindAction("Run", IE_Released, this, &ASTUBaseCharacter::OnStopRunning);
+    }
+}
+
+void ASTUBaseCharacter::MoveForward(float Amount)
+{
+    IsMovingForward = Amount > 0.0f;
+    AddMovementInput(GetActorForwardVector(), Amount);
+}
+
+void ASTUBaseCharacter::MoveRight(float Amount)
+{
+    if (Amount == 0.0f) return;
+    AddMovementInput(GetActorRightVector(), Amount);
+}
+
+void ASTUBaseCharacter::OnStartRunning()
+{
+    WantsToRun = true;
+}
+void ASTUBaseCharacter::OnStopRunning()
+{
+    WantsToRun = false;
+}
+
+bool ASTUBaseCharacter::IsRunning() const
+{
+    return WantsToRun && IsMovingForward && !GetVelocity().IsZero();
+}
+
+float ASTUBaseCharacter::GetMovementDirection() const
+{
+    if (GetVelocity().IsZero()) return 0.0f;
+    const auto VelocityNormal = GetVelocity().GetSafeNormal();
+    const auto AngleBetween = FMath::Acos(FVector::DotProduct(GetActorForwardVector(), VelocityNormal));
+    const auto CrossProduct = FVector::CrossProduct(GetActorForwardVector(), VelocityNormal);
+    const auto Degrees = FMath::RadiansToDegrees(AngleBetween);
+    return CrossProduct.IsZero() ? Degrees : Degrees * FMath::Sign(CrossProduct.Z);
+}
+
+void ASTUBaseCharacter::OnDeath()
+{
+    UE_LOG(BaseCharacterLog, Display, TEXT("Player %s is dead"), *GetName());
+
+    //проиграть анимацию
+    PlayAnimMontage(DeathAnimMontage);
+
+    //останавка всего движения
+    GetCharacterMovement()->DisableMovement();
+
+    //уничтожение персонажа, через 5 сек
+    SetLifeSpan(5.0f);
+
+    //при смерти переключение на стандартный режим наблюдателя
+    //если зайти по пути controller - ctrl +f ChangeState - f12 -BeginSpectatingState
+    //можно увидеть то как запускается функция UnPosses() и удаляется старый pawn
+    if (Controller)
+    {
+        Controller->ChangeState(NAME_Spectating);
+    }
+}
+```
+
+## LandedDelegate, получение урона от падения
+
+baseCharacter.h
+
+```cpp
+// Shoot Them Up Game, All Right Reserved.
+
+#pragma once
+
+#include "CoreMinimal.h"
+#include "GameFramework/Character.h"
+#include "STUBaseCharacter.generated.h"
+
+//указываем заранее классы
+class UCameraComponent;
+class USpringArmComponent;
+class USTUHealthComponent;
+class UTextRenderComponent;
+
+UCLASS()
+class STU_API ASTUBaseCharacter : public ACharacter
+{
+    GENERATED_BODY()
+
+public:
+    // Sets default values for this character's properties
+    ASTUBaseCharacter(const FObjectInitializer& ObjInit);
+
+protected:
+    //создание камеры
+    UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Components")
+    USpringArmComponent* SpringArmComponent;
+
+    UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Components")
+    UCameraComponent* CameraComponent;
+
+    UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Components")
+    USTUHealthComponent* HealthComponent;
+
+    //показ количества хп у персонажа
+    UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Components")
+    UTextRenderComponent* HealthTextComponent;
+
+    UPROPERTY(EditDefaultsOnly, Category = "Animation")
+    UAnimMontage* DeathAnimMontage;
+
+    //падение
+    //меньше 900 скорости падения = 0  урона
+    //при 1200 = максимальный урон 
+    UPROPERTY(EditDefaultsOnly, Category = "Movement")
+    FVector2D LandedDamageVelocity = FVector2D(900.0f, 1200.0f);
+
+    //минимальный и максимальный урон 
+    UPROPERTY(EditDefaultsOnly, Category = "Movement")
+    FVector2D LandedDamage = FVector2D(10.0f, 100.0f);
+
+    // Called when the game starts or when spawned
+    virtual void BeginPlay() override;
+
+public:
+    // Called every frame
+    virtual void Tick(float DeltaTime) override;
+
+    // Called to bind functionality to input
+    virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+
+    UFUNCTION(BlueprintCallable, Category = "Movement")
+    bool IsRunning() const;
+
+    UFUNCTION(BlueprintCallable, Category = "Movement")
+    float GetMovementDirection() const;
+
+private:
+    //переменные для ускорение персонажа
+    bool WantsToRun = false;
+    bool IsMovingForward = false;
+
+    //функции на передвижения в стороны
+    void MoveForward(float Amount);
+    void MoveRight(float Amount);
+
+    //функции на ускорение персонажа
+    void OnStartRunning();
+    void OnStopRunning();
+
+    //функция на смерть персонажа
+    void OnDeath();
+     
+    //функция на изменение хп персонажа
+    void OnHealthChanged(float Health);
+
+    UFUNCTION()
+    void OnGroundLanded(const FHitResult& Hit);
+};
+
+```
+
+.cpp
+
+```cpp
+void ASTUBaseCharacter::OnGroundLanded(const FHitResult& Hit)
+{
+    //логируем текущую скорость падения
+    //скорость падения будет точно такая же как скорость передвижения по Z 
+    //так как значение по Z будет отрицательным при падение, до множаем на -1
+    const auto FallVelocityZ = -GetCharacterMovement()->Velocity.Z;
+    UE_LOG(BaseCharacterLog, Display, TEXT("On landed: %f"), FallVelocityZ);
+
+    if (FallVelocityZ < LandedDamageVelocity.X) return;
+
+    //нанесение урона в зависимости от высоты
+    const auto FinalDamage = FMath::GetMappedRangeValueClamped(LandedDamageVelocity, LandedDamage, FallVelocityZ);
+    UE_LOG(BaseCharacterLog, Display, TEXT("FinalDamage: %f"), FinalDamage);
+    TakeDamage(FinalDamage, FDamageEvent{}, nullptr, nullptr);
+
+}
+```
+
+## Class Weapon, Spawn Weapon in Hand 
+
+character.h
+
+```cpp
+// Shoot Them Up Game, All Right Reserved.
+
+#pragma once
+
+#include "CoreMinimal.h"
+#include "GameFramework/Character.h"
+#include "STUBaseCharacter.generated.h"
+
+//указываем заранее классы
+class UCameraComponent;
+class USpringArmComponent;
+class USTUHealthComponent;
+class UTextRenderComponent;
+class ASTUBaseWeapon;
+
+UCLASS()
+class STU_API ASTUBaseCharacter : public ACharacter
+{
+    GENERATED_BODY()
+
+public:
+    // Sets default values for this character's properties
+    ASTUBaseCharacter(const FObjectInitializer& ObjInit);
+
+protected:
+    //создание камеры
+    UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Components")
+    USpringArmComponent* SpringArmComponent;
+
+    UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Components")
+    UCameraComponent* CameraComponent;
+
+    UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Components")
+    USTUHealthComponent* HealthComponent;
+
+    //показ количества хп у персонажа
+    UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Components")
+    UTextRenderComponent* HealthTextComponent;
+
+    UPROPERTY(EditDefaultsOnly, Category = "Animation")
+    UAnimMontage* DeathAnimMontage;
+
+    //падение
+    //меньше 900 скорости падения = 0  урона
+    //при 1200 = максимальный урон
+    UPROPERTY(EditDefaultsOnly, Category = "Damage")
+    FVector2D LandedDamageVelocity = FVector2D(900.0f, 1200.0f);
+
+    //минимальный и максимальный урон
+    UPROPERTY(EditDefaultsOnly, Category = "Damage")
+    FVector2D LandedDamage = FVector2D(10.0f, 100.0f);
+
+    UPROPERTY(EditDefaultsOnly, Category = "Weapon")
+    TSubclassOf<ASTUBaseWeapon> WeaponClass;
+
+    // Called when the game starts or when spawned
+    virtual void BeginPlay() override;
+
+public:
+    // Called every frame
+    virtual void Tick(float DeltaTime) override;
+
+    // Called to bind functionality to input
+    virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+
+    UFUNCTION(BlueprintCallable, Category = "Movement")
+    bool IsRunning() const;
+
+    UFUNCTION(BlueprintCallable, Category = "Movement")
+    float GetMovementDirection() const;
+
+private:
+    //переменные для ускорение персонажа
+    bool WantsToRun = false;
+    bool IsMovingForward = false;
+
+    //функции на передвижения в стороны
+    void MoveForward(float Amount);
+    void MoveRight(float Amount);
+
+    //функции на ускорение персонажа
+    void OnStartRunning();
+    void OnStopRunning();
+
+    //функция на смерть персонажа
+    void OnDeath();
+
+    //функция на изменение хп персонажа
+    void OnHealthChanged(float Health);
+
+    UFUNCTION()
+    void OnGroundLanded(const FHitResult& Hit);
+
+    //спавн оружие и присоединение к персонажу
+    void SpawnWeapon();
+};
+
+```
+
+character.cpp
+
+```cpp
+#include "STU/Weapons/STUBaseWeapon.h"
+
+// Called when the game starts or when spawned
+void ASTUBaseCharacter::BeginPlay()
+{
+    Super::BeginPlay();
+
+    //проверка на 0 компоненты, работают только в девелоп билдак
+    //не сбилдиться, если не подключен
+    check(HealthComponent);
+    check(HealthTextComponent);
+    check(GetCharacterMovement());
+
+    OnHealthChanged(HealthComponent->GetHealth());
+
+    //подписываемся в начале на получение сообщения от делегатов
+    //вызов функции при получении сообщения сметри персонажа с делегата, вызов функции OnDeath
+    //AddUObject такой вызов потому что мы обращаемся к делегату, только в C++
+    HealthComponent->OnDeath.AddUObject(this, &ASTUBaseCharacter::OnDeath);
+
+    //делагат на получение урона
+    HealthComponent->OnHealthChanged.AddUObject(this, &ASTUBaseCharacter::OnHealthChanged);
+
+    //Получение урона от падения
+    LandedDelegate.AddDynamic(this, &ASTUBaseCharacter::OnGroundLanded);
+
+    //спавн оружия у персонажа в начале игры
+    SpawnWeapon();
+}
+
+void ASTUBaseCharacter::SpawnWeapon()
+{
+    //если указатель на мир игры не нулевой
+    if (!GetWorld()) return;
+
+    //спавн оружия
+    const auto Weapon = GetWorld()->SpawnActor<ASTUBaseWeapon>(WeaponClass);
+
+    if (Weapon)
+    {
+        //аттач к мешу, руке
+        FAttachmentTransformRules AttachmentRules(EAttachmentRule::SnapToTarget, false);
+        Weapon->AttachToComponent(GetMesh(), AttachmentRules, "WeaponSocket");
+    }
+}
+```
+
+weapon.cpp
+
+```cpp
+// Shoot Them Up Game, All Right Reserved.
+
+#include "STUBaseWeapon.h"
+#include "Components/SkeletalMeshComponent.h"
+
+ASTUBaseWeapon::ASTUBaseWeapon()
+{
+    PrimaryActorTick.bCanEverTick = false;
+
+    WeaponMesh = CreateDefaultSubobject<USkeletalMeshComponent>("WeaponMesh");
+    SetRootComponent(WeaponMesh);
+}
+
+void ASTUBaseWeapon::BeginPlay()
+{
+    Super::BeginPlay();
+}
+
+```
+
+weapon.h
+
+```cpp
+// Shoot Them Up Game, All Right Reserved.
+
+#pragma once
+
+#include "CoreMinimal.h"
+#include "GameFramework/Actor.h"
+#include "STUBaseWeapon.generated.h"
+
+class USkeletalMeshComponent;
+
+UCLASS()
+class STU_API ASTUBaseWeapon : public AActor
+{
+    GENERATED_BODY()
+
+public:
+    ASTUBaseWeapon();
+
+protected:
+    UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Components")
+    USkeletalMeshComponent* WeaponMesh;
+
+    virtual void BeginPlay() override;
+};
+
+```
+
+## class AHUD, прицел, crosshair
+
+Head Up Display 
+
+.h
+
+```cpp
+// Shoot Them Up Game, All Right Reserved.
+
+#pragma once
+
+#include "CoreMinimal.h"
+#include "GameFramework/HUD.h"
+#include "STUGameHUD.generated.h"
+
+/**
+ * 
+ */
+UCLASS()
+class STU_API ASTUGameHUD : public AHUD
+{
+    GENERATED_BODY()
+
+public:
+    virtual void DrawHUD() override;
+
+private:
+    void DrawCrossHair();
+};
+
+```
+
+.cpp
+
+```cpp
+// Shoot Them Up Game, All Right Reserved.
+
+
+#include "STUGameHUD.h"
+#include "Engine/Canvas.h"
+
+//перезапись виртуальной функции 
+void ASTUGameHUD::DrawHUD()
+{
+    //вызов родительской функции
+    Super::DrawHUD();
+
+    DrawCrossHair();
+}
+
+void ASTUGameHUD::DrawCrossHair()
+{
+    //рисование точки в центре
+    const TInterval<float> Center(Canvas->SizeX * 0.5f, Canvas->SizeY * 0.5f);
+
+    //половинки влево, вправо, вверх, вниз
+    const float HalfLineSize = 10.0f;
+    const float LineThickness = 2.0f;
+    const FLinearColor LineColor = FLinearColor::Green;
+
+    //функция которая умеет рисовать линии 
+    //горизонтальная линия 
+    DrawLine(Center.Min - HalfLineSize, Center.Max, Center.Min + HalfLineSize, Center.Max, LineColor, LineThickness);
+
+    //вертикальная линия
+    DrawLine(Center.Min, Center.Max - HalfLineSize, Center.Min, Center.Max + HalfLineSize, LineColor, LineThickness);
+}
+
+```
+
+gamemode.cpp
+
+```cpp
+// Shoot Them Up Game, All Right Reserved.
+
+#include "STUGameModeBase.h"
+#include "STU/Character/STUBaseCharacter.h"
+#include "STU/Player/STUPlayerController.h"
+#include "STU/UI/STUGameHUD.h"
+
+ASTUGameModeBase::ASTUGameModeBase()
+{
+    DefaultPawnClass = ASTUBaseCharacter::StaticClass();
+    PlayerControllerClass = ASTUPlayerController::StaticClass();
+    HUDClass = ASTUGameHUD::StaticClass();
+}
+```
+
+## UWeaponComponent. Компонент оружия 
+

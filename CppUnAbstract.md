@@ -76,6 +76,38 @@ alt + t hot key
 >    - [[CppUnAbstract#Class Weapon, Spawn Weapon in Hand |Class Weapon, Spawn Weapon in Hand ]]
 >    - [[CppUnAbstract#class AHUD, прицел, crosshair|class AHUD, прицел, crosshair]]
 >    - [[CppUnAbstract#UWeaponComponent. Компонент оружия |UWeaponComponent. Компонент оружия ]]
+>    - [[CppUnAbstract#Collision, Console Command |Collision, Console Command ]]
+>        - [[CppUnAbstract#Console command collision|Console command collision]]
+>        - [[CppUnAbstract#Collsion settings|Collsion settings]]
+>        - [[CppUnAbstract#Camera collsion|Camera collsion]]
+>        - [[CppUnAbstract#Пересечение других акторов, их показ |Пересечение других акторов, их показ ]]
+>        - [[CppUnAbstract#События возникающие при столкновение |События возникающие при столкновение ]]
+>        - [[CppUnAbstract#Собственная настройка канала коллизии|Собственная настройка канала коллизии]]
+>    - [[CppUnAbstract#Line trace |Line trace ]]
+>        - [[CppUnAbstract#Line trace |Line trace ]]
+>        - [[CppUnAbstract#что бы трейс бил точно по мешу объекта, а не по капсуле|что бы трейс бил точно по мешу объекта, а не по капсуле]]
+>        - [[CppUnAbstract#Рефакторинг |Рефакторинг ]]
+>    - [[CppUnAbstract#Получение урона врагов |Получение урона врагов ]]
+>    - [[CppUnAbstract#Animation offset, прицеливание, поворот персонажа с прицелом|Animation offset, прицеливание, поворот персонажа с прицелом]]
+>    - [[CppUnAbstract#F.A.B.R.I.K. Закрепить другую кость в положение к другой кости|F.A.B.R.I.K. Закрепить другую кость в положение к другой кости]]
+>    - [[CppUnAbstract#Стрельба по таймеру |Стрельба по таймеру ]]
+>    - [[CppUnAbstract#UProjectileMovementComponent|UProjectileMovementComponent]]
+>    - [[CppUnAbstract#Radial Apply Damage, гранатомет |Radial Apply Damage, гранатомет ]]
+>    - [[CppUnAbstract#Создание арсенала оружия |Создание арсенала оружия ]]
+>    - [[CppUnAbstract#Anim Notify|Anim Notify]]
+>    - [[CppUnAbstract#Equip Animation / Equip flag|Equip Animation / Equip flag]]
+>    - [[CppUnAbstract#Slot upper body |Slot upper body ]]
+>    - [[CppUnAbstract#Ammo data|Ammo data]]
+>    - [[CppUnAbstract#Различные анимации перезарядки, FindByPredicate|Различные анимации перезарядки, FindByPredicate]]
+>    - [[CppUnAbstract#Шаблон класса для anim notify |Шаблон класса для anim notify ]]
+>    - [[CppUnAbstract#Автоматическая перезарядка |Автоматическая перезарядка ]]
+>    - [[CppUnAbstract#Рефакторинг |Рефакторинг ]]
+>    - [[CppUnAbstract#Blueprint Widget |Blueprint Widget ]]
+>    - [[CppUnAbstract#Widget in C++|Widget in C++]]
+>    - [[CppUnAbstract#Подключение значения здоровья в HUD|Подключение значения здоровья в HUD]]
+>    - [[CppUnAbstract#Рефакторинг. создание общей функции возвращения указателя на компонент |Рефакторинг. создание общей функции возвращения указателя на компонент ]]
+>    - [[CppUnAbstract#Pickups|Pickups]]
+>    - [[CppUnAbstract#Respawn PickUp, virtual pickup function, health pick up |Respawn PickUp, virtual pickup function, health pick up ]]
 
 
 ## Разное
@@ -488,6 +520,8 @@ LogForTestingNewActor: Warning:
 https://dev.epicgames.com/documentation/en-us/unreal-engine/unreal-engine-uproperties?application_version=5.4
 
 Вставляется в .h заголовок. Позволяет выводить значения для изменения во вьюпорте 
+
+Нужно вставлять для всех UObject в h файле, регулируют сборщик мусора
 
 ```cpp
 
@@ -4814,4 +4848,3678 @@ ASTUGameModeBase::ASTUGameModeBase()
 ```
 
 ## UWeaponComponent. Компонент оружия 
+
+STUBaseCharacter.h
+
+```cpp
+class USTUWeaponComponent;
+
+protected
+    UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Components")
+    USTUWeaponComponent* WeaponComponent;
+
+
+```
+
+STUBaseCharacter.cpp
+
+```cpp
+#include "STU/Character/STUWeaponComponent.h"
+
+
+// Sets default values
+ASTUBaseCharacter::ASTUBaseCharacter(const FObjectInitializer& ObjInit)
+    : Super(ObjInit.SetDefaultSubobjectClass<USTU_CharacterMovementComponent>(ACharacter::CharacterMovementComponentName))
+{
+    PrimaryActorTick.bCanEverTick = true;
+
+    WeaponComponent = CreateDefaultSubobject<USTUWeaponComponent>("WeaponComponent");
+}
+
+// Called to bind functionality to input
+void ASTUBaseCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
+{
+    Super::SetupPlayerInputComponent(PlayerInputComponent);
+
+    check(PlayerInputComponent);
+    check(WeaponComponent);
+    PlayerInputComponent->BindAction("Fire", IE_Pressed, WeaponComponent, &USTUWeaponComponent::Fire);
+
+}
+```
+
+STUBaseWeapon.h
+
+```cpp
+// Shoot Them Up Game, All Right Reserved.
+
+#pragma once
+
+#include "CoreMinimal.h"
+#include "GameFramework/Actor.h"
+#include "STUBaseWeapon.generated.h"
+
+class USkeletalMeshComponent;
+
+UCLASS()
+class STU_API ASTUBaseWeapon : public AActor
+{
+    GENERATED_BODY()
+
+public:
+    ASTUBaseWeapon();
+
+    virtual void Fire();
+
+protected:
+    UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Components")
+    USkeletalMeshComponent* WeaponMesh;
+
+    virtual void BeginPlay() override;
+};
+
+```
+
+STUBaseWeapon.cpp
+
+```cpp
+// Shoot Them Up Game, All Right Reserved.
+
+#include "STUBaseWeapon.h"
+#include "Components/SkeletalMeshComponent.h"
+
+DEFINE_LOG_CATEGORY_STATIC(LogBaseWeapon, All, All);
+
+
+ASTUBaseWeapon::ASTUBaseWeapon()
+{
+    PrimaryActorTick.bCanEverTick = false;
+
+    WeaponMesh = CreateDefaultSubobject<USkeletalMeshComponent>("WeaponMesh");
+    SetRootComponent(WeaponMesh);
+}
+
+void ASTUBaseWeapon::BeginPlay()
+{
+    Super::BeginPlay();
+}
+
+void ASTUBaseWeapon::Fire()
+{
+    UE_LOG(LogBaseWeapon, Display, TEXT("Fire!"))
+}
+
+```
+
+weaponComponent.h
+
+```cpp
+// Shoot Them Up Game, All Right Reserved.
+
+#pragma once
+
+#include "CoreMinimal.h"
+#include "Components/ActorComponent.h"
+#include "STUWeaponComponent.generated.h"
+
+class ASTUBaseWeapon;
+
+UCLASS(ClassGroup = (Custom), meta = (BlueprintSpawnableComponent))
+class STU_API USTUWeaponComponent : public UActorComponent
+{
+    GENERATED_BODY()
+
+public:
+    // Sets default values for this component's properties
+    USTUWeaponComponent();
+
+    void Fire();
+
+protected:
+    UPROPERTY(EditDefaultsOnly, Category = "Weapon")
+    TSubclassOf<ASTUBaseWeapon> WeaponClass;
+
+    UPROPERTY(EditDefaultsOnly, Category = "Weapon")
+    FName WeaponAttachPointName = "WeaponSocket";
+
+    // Called when the game starts
+    virtual void BeginPlay() override;
+
+private:
+    UPROPERTY()
+    ASTUBaseWeapon* CurrentWeapon = nullptr;
+
+    //спавн оружие и присоединение к персонажу
+    void SpawnWeapon();
+};
+
+```
+
+weaponComponent.cpp
+
+```cpp
+// Shoot Them Up Game, All Right Reserved.
+
+#include "STUWeaponComponent.h"
+#include "STU/Weapons/STUBaseWeapon.h"
+#include "GameFramework/Character.h"
+
+DEFINE_LOG_CATEGORY_STATIC(WeaponComponentLog, All, All);
+
+USTUWeaponComponent::USTUWeaponComponent()
+{
+
+    PrimaryComponentTick.bCanEverTick = false;
+}
+
+void USTUWeaponComponent::BeginPlay()
+{
+    Super::BeginPlay();
+
+    SpawnWeapon();
+}
+
+void USTUWeaponComponent::SpawnWeapon()
+{
+    //если указатель на мир игры не нулевой
+    if (!GetWorld()) return;
+    UE_LOG(WeaponComponentLog, Display, TEXT("World is find!"));
+
+    ACharacter* Character = Cast<ACharacter>(GetOwner());
+    if (!Character) return;
+    UE_LOG(WeaponComponentLog, Display, TEXT("Character is find!"));
+
+    //спавн оружия
+    CurrentWeapon = GetWorld()->SpawnActor<ASTUBaseWeapon>(WeaponClass);
+    if (!CurrentWeapon) return;
+    UE_LOG(WeaponComponentLog, Display, TEXT("CurrentWeapon is find!"));
+
+    //аттач к мешу, руке
+    FAttachmentTransformRules AttachmentRules(EAttachmentRule::SnapToTarget, false);
+    CurrentWeapon->AttachToComponent(Character->GetMesh(), AttachmentRules, WeaponAttachPointName);
+    UE_LOG(WeaponComponentLog, Display, TEXT("Weapon is attached!"));
+}
+
+void USTUWeaponComponent::Fire()
+{
+    if (!CurrentWeapon) return;
+
+    //если есть оружие, то вызов из ASTUBaseWeapon Fire
+    CurrentWeapon->Fire();
+}
+```
+
+## Collision, Console Command 
+
+### Console command collision
+
+```
+stat fps
+stat none 
+
+show collision 
+
+```
+
+### Collsion settings
+
+
+![[Pasted image 20250517115401.png]]
+
+### Camera collsion
+
+Это и у camera collsion настройки выставить 
+
+![[Pasted image 20250517115338.png]]
+
+### Пересечение других акторов, их показ 
+
+![[Pasted image 20250517115510.png]]
+
+![[Pasted image 20250517115438.png]]
+
+![[Pasted image 20250517115457.png]]
+
+### События возникающие при столкновение 
+
+![[Pasted image 20250517115611.png]]
+
+![[Pasted image 20250517115651.png]]
+
+### Собственная настройка канала коллизии
+
+![[Pasted image 20250517115853.png]]
+
+obj channel 
+
+setting chanel 
+
+![[Pasted image 20250517115914.png]]
+
+## Line trace 
+
+### Line trace 
+
+baseWeapon.h
+
+```cpp
+// Shoot Them Up Game, All Right Reserved.
+
+#pragma once
+
+#include "CoreMinimal.h"
+#include "GameFramework/Actor.h"
+#include "STUBaseWeapon.generated.h"
+
+class USkeletalMeshComponent;
+
+UCLASS()
+class STU_API ASTUBaseWeapon : public AActor
+{
+    GENERATED_BODY()
+
+public:
+    ASTUBaseWeapon();
+
+    virtual void Fire();
+
+protected:
+    UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Components")
+    USkeletalMeshComponent* WeaponMesh;
+
+    UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+    FName MuzzleSocketName = "MuzzleSocket";
+
+    //дальность стрельбы 
+    UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+    float TraceMaxDistance = 1500.0f;
+
+    virtual void BeginPlay() override;
+
+    void MakeShot();
+};
+
+```
+
+baseWeapon.cpp
+
+```cpp
+// Shoot Them Up Game, All Right Reserved.
+
+#include "STUBaseWeapon.h"
+#include "Components/SkeletalMeshComponent.h"
+#include "Engine/World.h"
+#include "DrawDebugHelpers.h"
+#include "GameFramework/Character.h"
+#include "GameFramework/Controller.h"
+
+DEFINE_LOG_CATEGORY_STATIC(LogBaseWeapon, All, All);
+
+ASTUBaseWeapon::ASTUBaseWeapon()
+{
+    PrimaryActorTick.bCanEverTick = false;
+
+    WeaponMesh = CreateDefaultSubobject<USkeletalMeshComponent>("WeaponMesh");
+    SetRootComponent(WeaponMesh);
+}
+
+void ASTUBaseWeapon::BeginPlay()
+{
+    Super::BeginPlay();
+
+    check(WeaponMesh);
+}
+
+void ASTUBaseWeapon::Fire()
+{
+    UE_LOG(LogBaseWeapon, Display, TEXT("Fire!"))
+
+    MakeShot();
+}
+
+//выстрел
+void ASTUBaseWeapon::MakeShot()
+{
+    if (!GetWorld()) return;
+
+    const auto Player = Cast<ACharacter>(GetOwner());
+
+    //проверка на нулевой указатель
+    //он не должен равняться nullptr
+    if (!Player) return;
+
+    const auto Controller = Player->GetController<APlayerController>();
+    if (!Controller) return;
+
+    FVector ViewLocation;
+    FRotator ViewRotation;
+    Controller->GetPlayerViewPoint(ViewLocation, ViewRotation);
+
+    //рисование луча из сокета вперед
+
+    //берем локацию сокета и присваеваем в начало
+    const FTransform SocketTransform = WeaponMesh->GetSocketTransform(MuzzleSocketName);
+    //начальное положение это положение камеры
+    const FVector TraceStart = ViewLocation; //SocketTransform.GetLocation();
+
+    //берем forward vector из сокета или начала
+    //направление вектора в какую сторону стрельба идет
+    const FVector ShootDirection = ViewRotation.Vector(); // SocketTransform.GetRotation().GetForwardVector();
+
+    //для точки конца берем начало + направление вектора с домноженная дистанцией (1500 ед)
+    const FVector TraceEnd = TraceStart + ShootDirection * TraceMaxDistance;
+
+    //акторы для игнора
+    FCollisionQueryParams CollisionParams;
+    CollisionParams.AddIgnoredActor(GetOwner());
+
+    //возвращает первый объект с которым будет пересечение
+    //записывает данные в HitResult
+    //блокает для всех видных объектов
+    FHitResult HitResult;
+    GetWorld()->LineTraceSingleByChannel(HitResult, TraceStart, TraceEnd, ECollisionChannel::ECC_Visibility, CollisionParams);
+
+    if (HitResult.bBlockingHit)
+    {
+        //рисуем линию
+        //persistance - отрисовка один раз
+        DrawDebugLine(GetWorld(), SocketTransform.GetLocation(), HitResult.ImpactPoint, FColor::Red, false, 5.0f, 0, 3.0f);
+
+        //рисование сферы в точки попадания
+        DrawDebugSphere(GetWorld(), HitResult.ImpactPoint, 10.0f, 24, FColor::Red, false, 5.0f);
+
+        //вывод кости в которую попали
+        UE_LOG(LogBaseWeapon, Display, TEXT("Bone: %s"), *HitResult.BoneName.ToString());
+    }
+    else
+    {
+        //рисуем линию
+        //persistance - отрисовка один раз
+        DrawDebugLine(GetWorld(), SocketTransform.GetLocation(), TraceEnd, FColor::Red, false, 5.0f, 0, 3.0f);
+    }
+}
+```
+### что бы трейс бил точно по мешу объекта, а не по капсуле
+
+CapsuleTrace 
+
+![[Pasted image 20250517160634.png]]
+
+Mesh
+
+visible - block
+
+![[Pasted image 20250517160705.png]]
+
+### Рефакторинг 
+
+это переписывание кода с желанием разбить его на части и сделать более читабельным 
+
+.h
+
+```cpp
+// Shoot Them Up Game, All Right Reserved.
+
+#pragma once
+
+#include "CoreMinimal.h"
+#include "GameFramework/Actor.h"
+#include "STUBaseWeapon.generated.h"
+
+class USkeletalMeshComponent;
+
+UCLASS()
+class STU_API ASTUBaseWeapon : public AActor
+{
+    GENERATED_BODY()
+
+public:
+    ASTUBaseWeapon();
+
+    virtual void Fire();
+
+protected:
+    UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Components")
+    USkeletalMeshComponent* WeaponMesh;
+
+    UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+    FName MuzzleSocketName = "MuzzleSocket";
+
+    //дальность стрельбы
+    UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+    float TraceMaxDistance = 1500.0f;
+
+    virtual void BeginPlay() override;
+
+    void MakeShot();
+
+    APlayerController* GetPlayerController() const;
+    bool GetPlayerViewPoint(FVector& ViewLocation, FRotator& ViewRotation) const;
+    FVector GetMuzzleWorldLocation() const;
+    bool GetTraceData(FVector& TraceStart, FVector& TraceEnd) const;
+    void MakeHit(FHitResult& HitResult, const FVector& TraceStart, const FVector& TraceEnd);
+};
+
+```
+
+.cpp
+
+```cpp
+// Shoot Them Up Game, All Right Reserved.
+
+#include "STUBaseWeapon.h"
+#include "Components/SkeletalMeshComponent.h"
+#include "Engine/World.h"
+#include "DrawDebugHelpers.h"
+#include "GameFramework/Character.h"
+#include "GameFramework/Controller.h"
+
+DEFINE_LOG_CATEGORY_STATIC(LogBaseWeapon, All, All);
+
+ASTUBaseWeapon::ASTUBaseWeapon()
+{
+    PrimaryActorTick.bCanEverTick = false;
+
+    WeaponMesh = CreateDefaultSubobject<USkeletalMeshComponent>("WeaponMesh");
+    SetRootComponent(WeaponMesh);
+}
+
+void ASTUBaseWeapon::BeginPlay()
+{
+    Super::BeginPlay();
+
+    check(WeaponMesh);
+}
+
+void ASTUBaseWeapon::Fire()
+{
+    //UE_LOG(LogBaseWeapon, Display, TEXT("Fire!"))
+
+    MakeShot();
+}
+
+//выстрел
+void ASTUBaseWeapon::MakeShot()
+{
+    if (!GetWorld()) return;
+
+    FVector TraceStart, TraceEnd;
+    if (!GetTraceData(TraceStart, TraceEnd)) return;
+
+    FHitResult HitResult;
+    MakeHit(HitResult, TraceStart, TraceEnd);
+
+    if (HitResult.bBlockingHit)
+    {
+        //рисуем линию
+        //persistance - отрисовка один раз
+        DrawDebugLine(GetWorld(), GetMuzzleWorldLocation(), HitResult.ImpactPoint, FColor::Red, false, 5.0f, 0, 3.0f);
+
+        //рисование сферы в точки попадания
+        DrawDebugSphere(GetWorld(), HitResult.ImpactPoint, 10.0f, 24, FColor::Red, false, 5.0f);
+
+        //вывод кости в которую попали
+        UE_LOG(LogBaseWeapon, Display, TEXT("Bone: %s"), *HitResult.BoneName.ToString());
+    }
+    else
+    {
+        //рисуем линию
+        //persistance - отрисовка один раз
+        DrawDebugLine(GetWorld(), GetMuzzleWorldLocation(), TraceEnd, FColor::Red, false, 5.0f, 0, 3.0f);
+    }
+}
+
+//функция возвращает контроллер
+APlayerController* ASTUBaseWeapon::GetPlayerController() const
+{
+    const auto Player = Cast<ACharacter>(GetOwner());
+    if (!Player) return nullptr;
+
+    return Player->GetController<APlayerController>();
+}
+
+//получение ViewPoint player
+bool ASTUBaseWeapon::GetPlayerViewPoint(FVector& ViewLocation, FRotator& ViewRotation) const
+{
+    const auto Controller = GetPlayerController();
+    if (!Controller) return false;
+
+    Controller->GetPlayerViewPoint(ViewLocation, ViewRotation);
+    return true;
+}
+
+//получение данные позиции сокета
+FVector ASTUBaseWeapon::GetMuzzleWorldLocation() const
+{
+    return WeaponMesh->GetSocketLocation(MuzzleSocketName);
+}
+
+//получение данных для trace
+bool ASTUBaseWeapon::GetTraceData(FVector& TraceStart, FVector& TraceEnd) const
+{
+    FVector ViewLocation;
+    FRotator ViewRotation;
+    if (!GetPlayerViewPoint(ViewLocation, ViewRotation)) return false;
+
+    //начальное положение это положение камеры
+    TraceStart = ViewLocation;
+
+    //берем forward vector из сокета или начала
+    //направление вектора в какую сторону стрельба идет
+    const FVector ShootDirection = ViewRotation.Vector();
+
+    //для точки конца берем начало + направление вектора с домноженная дистанцией (1500 ед)
+    TraceEnd = TraceStart + ShootDirection * TraceMaxDistance;
+    return true;
+}
+
+//функция трейса
+void ASTUBaseWeapon::MakeHit(FHitResult& HitResult, const FVector& TraceStart, const FVector& TraceEnd)
+{
+    if (!GetWorld()) return;
+
+    //акторы для игнора
+    FCollisionQueryParams CollisionParams;
+    CollisionParams.AddIgnoredActor(GetOwner());
+
+    //возвращает первый объект с которым будет пересечение
+    //записывает данные в HitResult
+    //блокает для всех видных объектов
+    GetWorld()->LineTraceSingleByChannel(HitResult, TraceStart, TraceEnd, ECollisionChannel::ECC_Visibility, CollisionParams);
+}
+```
+
+## Получение урона врагов 
+
+Когда трейс попадает по врагу
+У врага должен вызываться через делегат TakeDamage 
+Враг должен получать урон
+И смерть врага 
+
+.h
+
+```cpp
+// Shoot Them Up Game, All Right Reserved.
+
+#pragma once
+
+#include "CoreMinimal.h"
+#include "GameFramework/Actor.h"
+#include "STUBaseWeapon.generated.h"
+
+class USkeletalMeshComponent;
+
+UCLASS()
+class STU_API ASTUBaseWeapon : public AActor
+{
+    GENERATED_BODY()
+
+public:
+    ASTUBaseWeapon();
+
+    virtual void Fire();
+
+protected:
+    UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Components")
+    USkeletalMeshComponent* WeaponMesh;
+
+    UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+    FName MuzzleSocketName = "MuzzleSocket";
+
+    //дальность стрельбы
+    UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+    float TraceMaxDistance = 1500.0f;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    TSubclassOf<UDamageType> DamageTypeClass;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    float DamageAmount = 10.0f;
+
+    virtual void BeginPlay() override;
+
+    void MakeShot();
+
+    APlayerController* GetPlayerController() const;
+    bool GetPlayerViewPoint(FVector& ViewLocation, FRotator& ViewRotation) const;
+    FVector GetMuzzleWorldLocation() const;
+    bool GetTraceData(FVector& TraceStart, FVector& TraceEnd) const;
+    void MakeHit(FHitResult& HitResult, const FVector& TraceStart, const FVector& TraceEnd);
+    void MakeDamage(FHitResult& HitResult);
+};
+
+```
+
+.cpp
+
+```cpp
+// Shoot Them Up Game, All Right Reserved.
+
+#include "STUBaseWeapon.h"
+#include "Components/SkeletalMeshComponent.h"
+#include "Engine/World.h"
+#include "DrawDebugHelpers.h"
+#include "GameFramework/Character.h"
+#include "GameFramework/Controller.h"
+#include "STU/Character/STUBaseCharacter.h"
+#include "Kismet/GameplayStatics.h"
+#include "STU/Dev/STUFireDamageType.h"
+
+DEFINE_LOG_CATEGORY_STATIC(LogBaseWeapon, All, All);
+
+ASTUBaseWeapon::ASTUBaseWeapon()
+{
+    PrimaryActorTick.bCanEverTick = false;
+
+    WeaponMesh = CreateDefaultSubobject<USkeletalMeshComponent>("WeaponMesh");
+    SetRootComponent(WeaponMesh);
+}
+
+void ASTUBaseWeapon::BeginPlay()
+{
+    Super::BeginPlay();
+
+    check(WeaponMesh);
+}
+
+void ASTUBaseWeapon::Fire()
+{
+    //UE_LOG(LogBaseWeapon, Display, TEXT("Fire!"))
+
+    MakeShot();
+}
+
+//выстрел
+void ASTUBaseWeapon::MakeShot()
+{
+    if (!GetWorld()) return;
+
+    FVector TraceStart, TraceEnd;
+    if (!GetTraceData(TraceStart, TraceEnd)) return;
+
+    FHitResult HitResult;
+    MakeHit(HitResult, TraceStart, TraceEnd);
+
+    if (HitResult.bBlockingHit)
+    {
+        //вызов фукнции нанесения урона
+        MakeDamage(HitResult);
+
+        //рисуем линию
+        //persistance - отрисовка один раз
+        DrawDebugLine(GetWorld(), GetMuzzleWorldLocation(), HitResult.ImpactPoint, FColor::Red, false, 5.0f, 0, 3.0f);
+
+        //рисование сферы в точки попадания
+        DrawDebugSphere(GetWorld(), HitResult.ImpactPoint, 10.0f, 24, FColor::Red, false, 5.0f);
+
+        //вывод кости в которую попали
+        UE_LOG(LogBaseWeapon, Display, TEXT("Bone: %s"), *HitResult.BoneName.ToString());
+
+
+        //----------
+        //AActor* HitActor = HitResult.GetActor();
+
+        //if (!HitActor) return;
+        //UE_LOG(LogBaseWeapon, Display, TEXT("Actor: %s"), *HitActor->GetName());
+        ////UE_LOG(LogBaseWeapon, Display, TEXT("Actor: %s"), *GetNameSafe(HitResult.GetActor()));
+
+        //if (HitActor->IsA<ASTUBaseCharacter>())
+        //{
+        //    if (DamageTypeClass) return;
+
+
+        //    UE_LOG(LogBaseWeapon, Display, TEXT("EnemyActor is find!"));
+        //    UGameplayStatics::ApplyDamage(HitActor, 10.0f, nullptr, this, DamageTypeClass);
+        //}
+    }
+    else
+    {
+        //рисуем линию
+        //persistance - отрисовка один раз
+        DrawDebugLine(GetWorld(), GetMuzzleWorldLocation(), TraceEnd, FColor::Red, false, 5.0f, 0, 3.0f);
+    }
+}
+
+//функция возвращает контроллер
+APlayerController* ASTUBaseWeapon::GetPlayerController() const
+{
+    const auto Player = Cast<ACharacter>(GetOwner());
+    if (!Player) return nullptr;
+
+    return Player->GetController<APlayerController>();
+}
+
+//получение ViewPoint player
+bool ASTUBaseWeapon::GetPlayerViewPoint(FVector& ViewLocation, FRotator& ViewRotation) const
+{
+    const auto Controller = GetPlayerController();
+    if (!Controller) return false;
+
+    Controller->GetPlayerViewPoint(ViewLocation, ViewRotation);
+    return true;
+}
+
+//получение данные позиции сокета
+FVector ASTUBaseWeapon::GetMuzzleWorldLocation() const
+{
+    return WeaponMesh->GetSocketLocation(MuzzleSocketName);
+}
+
+//получение данных для trace
+bool ASTUBaseWeapon::GetTraceData(FVector& TraceStart, FVector& TraceEnd) const
+{
+    FVector ViewLocation;
+    FRotator ViewRotation;
+    if (!GetPlayerViewPoint(ViewLocation, ViewRotation)) return false;
+
+    //начальное положение это положение камеры
+    TraceStart = ViewLocation;
+
+    //берем forward vector из сокета или начала
+    //направление вектора в какую сторону стрельба идет
+    const FVector ShootDirection = ViewRotation.Vector();
+
+    //для точки конца берем начало + направление вектора с домноженная дистанцией (1500 ед)
+    TraceEnd = TraceStart + ShootDirection * TraceMaxDistance;
+    return true;
+}
+
+//функция трейса
+void ASTUBaseWeapon::MakeHit(FHitResult& HitResult, const FVector& TraceStart, const FVector& TraceEnd)
+{
+    if (!GetWorld()) return;
+
+    //акторы для игнора
+    FCollisionQueryParams CollisionParams;
+    CollisionParams.AddIgnoredActor(GetOwner());
+
+    //возвращает первый объект с которым будет пересечение
+    //записывает данные в HitResult
+    //блокает для всех видных объектов
+    GetWorld()->LineTraceSingleByChannel(HitResult, TraceStart, TraceEnd, ECollisionChannel::ECC_Visibility, CollisionParams);
+}
+
+void ASTUBaseWeapon::MakeDamage(FHitResult& HitResult)
+{
+    const auto DamagedActor = HitResult.GetActor();
+    if (!DamagedActor) return;
+
+    DamagedActor->TakeDamage(DamageAmount, FDamageEvent(), GetPlayerController(), this);
+}
+```
+
+## Animation offset, прицеливание, поворот персонажа с прицелом
+
+вектор для вычисления угла отклонения и прицеливания 
+
+![[Pasted image 20250518080827.png]]
+
+![[Pasted image 20250518080800.png]]
+
+![[Pasted image 20250518082405.png]]
+## F.A.B.R.I.K. Закрепить другую кость в положение к другой кости
+
+Можно закрепить кость к другой кости 
+
+![[Pasted image 20250518095750.png]]
+
+![[Pasted image 20250518095725.png]]
+![[Pasted image 20250518095717.png]]
+
+![[Pasted image 20250518100330.png]]
+
+![[Pasted image 20250518100322.png]]
+
+## Стрельба по таймеру 
+
+Когда кнопка зажата, стрельба продолжает идти 
+
+```cpp
+    PlayerInputComponent->BindAction("Fire", IE_Pressed, WeaponComponent, &USTUWeaponComponent::StartFire);
+    PlayerInputComponent->BindAction("Fire", IE_Released, WeaponComponent, &USTUWeaponComponent::StopFire);
+
+```
+
+
+```cpp
+void USTUWeaponComponent::StartFire()
+{
+    if (!CurrentWeapon) return;
+
+    //если есть оружие, то вызов из ASTUBaseWeapon Fire
+    CurrentWeapon->StartFire();
+}
+
+void USTUWeaponComponent::StopFire()
+{
+    if (!CurrentWeapon) return;
+    CurrentWeapon->StopFire();
+}
+```
+
+
+```cpp
+void ASTUBaseWeapon::StartFire()
+{
+    MakeShot();
+    GetWorldTimerManager().SetTimer(ShotTimerHandle, this, &ASTUBaseWeapon::MakeShot, TimeBetweenShot, true);
+}
+
+void ASTUBaseWeapon::StopFire()
+{
+    GetWorldTimerManager().ClearTimer(ShotTimerHandle);
+}
+```
+
+## UProjectileMovementComponent
+
+Этот мувмент компонет регулирует исключетельно движение projectile 
+
+LauncherWeapon.h
+
+```cpp
+// Shoot Them Up Game, All Right Reserved.
+
+#pragma once
+
+#include "CoreMinimal.h"
+#include "STUBaseWeapon.h"
+#include "STULauncherWeapon.generated.h"
+
+class ASTUProjectile;
+
+UCLASS()
+class STU_API ASTULauncherWeapon : public ASTUBaseWeapon
+{
+    GENERATED_BODY()
+
+public:
+    virtual void StartFire() override;
+
+protected:
+    UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Weapon")
+    TSubclassOf<ASTUProjectile> ProjectileClass;
+
+    virtual void MakeShot() override;
+};
+
+```
+
+LauncherWeapon.cpp
+
+```cpp
+// Shoot Them Up Game, All Right Reserved.
+
+#include "STULauncherWeapon.h"
+#include "STUProjectile.h"
+
+void ASTULauncherWeapon::StartFire()
+{
+    MakeShot();
+}
+
+void ASTULauncherWeapon::MakeShot()
+{
+    if (!GetWorld()) return;
+
+    FVector TraceStart, TraceEnd;
+    if (!GetTraceData(TraceStart, TraceEnd)) return;
+
+    FHitResult HitResult;
+    MakeHit(HitResult, TraceStart, TraceEnd);
+
+    //в точку записывается значение в зависимости от того
+    //попали ли мы куда то, если да попали, то пишем ImpactPoint, если нет то TraceEnd
+    const FVector EndPoint = HitResult.bBlockingHit ? HitResult.ImpactPoint : TraceEnd;
+
+    //Направление
+    const FVector Direction = (EndPoint - GetMuzzleWorldLocation()).GetSafeNormal();
+
+    const FTransform SpawnTransform(FRotator::ZeroRotator, GetMuzzleWorldLocation());
+    ASTUProjectile* Projectile = GetWorld()->SpawnActorDeferred<ASTUProjectile>(ProjectileClass, SpawnTransform);
+    if (Projectile)
+    {
+        Projectile->SetShotDirection(Direction);
+        Projectile->FinishSpawning(SpawnTransform);
+    }
+}
+
+```
+
+.h
+
+```cpp
+// Shoot Them Up Game, All Right Reserved.
+
+#pragma once
+
+#include "CoreMinimal.h"
+#include "GameFramework/Actor.h"
+#include "STUProjectile.generated.h"
+
+class USphereComponent;
+class UProjectileMovementComponent;
+
+UCLASS()
+class STU_API ASTUProjectile : public AActor
+{
+    GENERATED_BODY()
+
+public:
+    ASTUProjectile();
+
+    void SetShotDirection(const FVector& Direction) { ShotDirection = Direction; }
+
+protected:
+    UPROPERTY(VisibleDefaultsOnly, Category = "Weapon")
+    USphereComponent* CollisionComponent;
+
+    UPROPERTY(VisibleDefaultsOnly, Category = "Weapon")
+    UProjectileMovementComponent* MovementComponent;
+
+    virtual void BeginPlay() override;
+
+private:
+    FVector ShotDirection;
+};
+
+```
+
+.cpp
+
+```cpp
+// Shoot Them Up Game, All Right Reserved.
+
+#include "STUProjectile.h"
+#include "Components/SphereComponent.h"
+#include "GameFramework/ProjectileMovementComponent.h"
+
+ASTUProjectile::ASTUProjectile()
+{
+    PrimaryActorTick.bCanEverTick = false;
+
+    CollisionComponent = CreateDefaultSubobject<USphereComponent>("SphereComponent");
+    CollisionComponent->InitSphereRadius(5.0f);
+    SetRootComponent(CollisionComponent);
+
+    MovementComponent = CreateDefaultSubobject<UProjectileMovementComponent>("ProjectileMovementComponent");
+    MovementComponent->InitialSpeed = 2000.0f;
+    MovementComponent->ProjectileGravityScale = 0.0f;
+}
+
+void ASTUProjectile::BeginPlay()
+{
+    Super::BeginPlay();
+
+    check(MovementComponent);
+    MovementComponent->Velocity = ShotDirection * MovementComponent->InitialSpeed;
+    //по таймеру удалит актор
+    SetLifeSpan(5.0f);
+}
+```
+
+## Radial Apply Damage, гранатомет 
+
+launcher.h
+
+```cpp
+// Shoot Them Up Game, All Right Reserved.
+
+#pragma once
+
+#include "CoreMinimal.h"
+#include "STUBaseWeapon.h"
+#include "STULauncherWeapon.generated.h"
+
+class ASTUProjectile;
+
+UCLASS()
+class STU_API ASTULauncherWeapon : public ASTUBaseWeapon
+{
+    GENERATED_BODY()
+
+public:
+    virtual void StartFire() override;
+
+protected:
+    UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Weapon")
+    TSubclassOf<ASTUProjectile> ProjectileClass;
+
+    virtual void MakeShot() override;
+};
+
+```
+
+laucher.cpp
+
+```cpp
+// Shoot Them Up Game, All Right Reserved.
+
+#include "STULauncherWeapon.h"
+#include "STUProjectile.h"
+
+void ASTULauncherWeapon::StartFire()
+{
+    MakeShot();
+}
+
+void ASTULauncherWeapon::MakeShot()
+{
+    if (!GetWorld()) return;
+
+    FVector TraceStart, TraceEnd;
+    if (!GetTraceData(TraceStart, TraceEnd)) return;
+
+    FHitResult HitResult;
+    MakeHit(HitResult, TraceStart, TraceEnd);
+
+    //в точку записывается значение в зависимости от того
+    //попали ли мы куда то, если да попали, то пишем ImpactPoint, если нет то TraceEnd
+    const FVector EndPoint = HitResult.bBlockingHit ? HitResult.ImpactPoint : TraceEnd;
+
+    //Направление
+    const FVector Direction = (EndPoint - GetMuzzleWorldLocation()).GetSafeNormal();
+
+    const FTransform SpawnTransform(FRotator::ZeroRotator, GetMuzzleWorldLocation());
+    ASTUProjectile* Projectile = GetWorld()->SpawnActorDeferred<ASTUProjectile>(ProjectileClass, SpawnTransform);
+    if (Projectile)
+    {
+        Projectile->SetShotDirection(Direction);
+        Projectile->SetOwner(GetOwner());
+        Projectile->FinishSpawning(SpawnTransform);
+    }
+}
+
+```
+
+Projectile.h
+
+```cpp
+// Shoot Them Up Game, All Right Reserved.
+
+#pragma once
+
+#include "CoreMinimal.h"
+#include "GameFramework/Actor.h"
+#include "STUProjectile.generated.h"
+
+class USphereComponent;
+class UProjectileMovementComponent;
+
+UCLASS()
+class STU_API ASTUProjectile : public AActor
+{
+    GENERATED_BODY()
+
+public:
+    ASTUProjectile();
+
+    void SetShotDirection(const FVector& Direction) { ShotDirection = Direction; }
+
+protected:
+    UPROPERTY(VisibleAnywhere, Category = "Weapon")
+    USphereComponent* CollisionComponent;
+
+    UPROPERTY(VisibleAnywhere, Category = "Weapon")
+    UProjectileMovementComponent* MovementComponent;
+
+    UPROPERTY(EditDefaultsOnly, Category = "Weapon")
+    float DamageRadius = 200.0f;
+
+    UPROPERTY(EditDefaultsOnly, Category = "Weapon")
+    float DamageAmount = 50.0f;
+
+    UPROPERTY(EditDefaultsOnly, Category = "Weapon")
+    bool DoFullDamage = false;
+
+    UPROPERTY(EditDefaultsOnly, Category = "Weapon")
+    float LifeSeconds = 5.0;
+
+    virtual void BeginPlay() override;
+
+private:
+    FVector ShotDirection;
+
+    UFUNCTION()
+    void OnProjectileHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, 
+        UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
+
+    AController* GetController() const;
+};
+
+```
+
+Projectile.cpp
+
+```cpp
+// Shoot Them Up Game, All Right Reserved.
+
+#include "STUProjectile.h"
+#include "Components/SphereComponent.h"
+#include "GameFramework/ProjectileMovementComponent.h"
+#include "DrawDebugHelpers.h"
+#include "Kismet/GameplayStatics.h"
+
+ASTUProjectile::ASTUProjectile()
+{
+    PrimaryActorTick.bCanEverTick = false;
+
+    CollisionComponent = CreateDefaultSubobject<USphereComponent>("SphereComponent");
+    CollisionComponent->InitSphereRadius(5.0f);
+    CollisionComponent->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+    //настройка коллизии для всех других, при соприкосновении
+    CollisionComponent->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Block);
+    SetRootComponent(CollisionComponent);
+
+    MovementComponent = CreateDefaultSubobject<UProjectileMovementComponent>("ProjectileMovementComponent");
+    MovementComponent->InitialSpeed = 2000.0f;
+    MovementComponent->ProjectileGravityScale = 0.0f;
+}
+
+void ASTUProjectile::BeginPlay()
+{
+    Super::BeginPlay();
+
+    check(MovementComponent);
+    check(CollisionComponent);
+
+    MovementComponent->Velocity = ShotDirection * MovementComponent->InitialSpeed;
+    CollisionComponent->IgnoreActorWhenMoving(GetOwner(), true);
+    CollisionComponent->OnComponentHit.AddDynamic(this, &ASTUProjectile::OnProjectileHit);
+
+    //по таймеру удалит актор
+    SetLifeSpan(LifeSeconds);
+}
+
+void ASTUProjectile::OnProjectileHit(UPrimitiveComponent* HitComponent, AActor* OtherActor,
+    UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
+{
+    if (!GetWorld()) return;
+
+    //при попадании останавливать движение
+    MovementComponent->StopMovementImmediately();
+
+    //make damage
+    UGameplayStatics::ApplyRadialDamage(GetWorld(), //
+        DamageAmount,                               //
+        GetActorLocation(),                         //
+        DamageRadius,                               //
+        UDamageType::StaticClass(),                 //
+        {GetOwner()},                               //
+        this,                                       //
+        GetController(),                            //
+        DoFullDamage);
+
+    DrawDebugSphere(GetWorld(), GetActorLocation(), DamageRadius, 24, FColor::Red, false, 5.0f);
+
+    //актор удаляется либо по таймеру, либо при столкновении
+    Destroy();
+}
+
+AController* ASTUProjectile::GetController() const
+{
+    const auto Pawn = Cast<APawn>(GetOwner());
+    return Pawn ? Pawn->GetController() : nullptr;
+}
+```
+
+## Создание арсенала оружия 
+
+weaponComponent.h
+
+```cpp
+// Shoot Them Up Game, All Right Reserved.
+
+#pragma once
+
+#include "CoreMinimal.h"
+#include "Components/ActorComponent.h"
+#include "STUWeaponComponent.generated.h"
+
+class ASTUBaseWeapon;
+
+UCLASS(ClassGroup = (Custom), meta = (BlueprintSpawnableComponent))
+class STU_API USTUWeaponComponent : public UActorComponent
+{
+    GENERATED_BODY()
+
+public:
+    // Sets default values for this component's properties
+    USTUWeaponComponent();
+
+    void StartFire();
+    void StopFire();
+    void NextWeapon();
+
+protected:
+    //массив из саб классов оружия 
+    UPROPERTY(EditDefaultsOnly, Category = "Weapon")
+    TArray<TSubclassOf<ASTUBaseWeapon>> WeaponClasses;
+
+    UPROPERTY(EditDefaultsOnly, Category = "Weapon")
+    FName WeaponEquipSocketName = "WeaponSocket";
+
+    UPROPERTY(EditDefaultsOnly, Category = "Weapon")
+    FName WeaponArmorySocketName = "ArmorySocket";
+
+    // Called when the game starts
+    virtual void BeginPlay() override;
+
+    //вызывается при уничтожении 
+    virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
+
+private:
+    UPROPERTY()
+    ASTUBaseWeapon* CurrentWeapon = nullptr;
+
+    UPROPERTY()
+    TArray<ASTUBaseWeapon*> Weapons;
+
+    int32 CurrentWeaponIndex = 0;
+
+    //спавн оружие и присоединение к персонажу
+    void SpawnWeapons();
+    void AttachWeaponToSocket(ASTUBaseWeapon* Weapon,
+        USceneComponent* SceneComponent, const FName& SocketName);
+    void EquipWeapon(int32 WeaponIndex);
+};
+
+```
+
+weaponComponent.cpp
+
+```cpp
+// Shoot Them Up Game, All Right Reserved.
+
+#include "STUWeaponComponent.h"
+#include "STU/Weapons/STUBaseWeapon.h"
+#include "GameFramework/Character.h"
+
+DEFINE_LOG_CATEGORY_STATIC(WeaponComponentLog, All, All);
+
+USTUWeaponComponent::USTUWeaponComponent()
+{
+
+    PrimaryComponentTick.bCanEverTick = false;
+}
+
+void USTUWeaponComponent::BeginPlay()
+{
+    Super::BeginPlay();
+
+    CurrentWeaponIndex = 0;
+    SpawnWeapons();
+    EquipWeapon(CurrentWeaponIndex);
+}
+
+//функция при уничтожении 
+void USTUWeaponComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+    CurrentWeapon = nullptr;
+    for (auto Weapon : Weapons)
+    {
+        Weapon->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
+        Weapon->Destroy();
+    }
+    Weapons.Empty();
+
+    Super::EndPlay(EndPlayReason);
+}
+
+void USTUWeaponComponent::SpawnWeapons()
+{
+    ACharacter* Character = Cast<ACharacter>(GetOwner());
+    if (!Character || !GetWorld()) return;
+    //UE_LOG(WeaponComponentLog, Display, TEXT("Character is find!"));
+
+    for (auto WeaponClass : WeaponClasses)
+    {
+        //спавн оружия
+        auto Weapon = GetWorld()->SpawnActor<ASTUBaseWeapon>(WeaponClass);
+        if (!Weapon) continue;
+
+        Weapon->SetOwner(Character);
+        Weapons.Add(Weapon);
+
+        AttachWeaponToSocket(Weapon, Character->GetMesh(), WeaponArmorySocketName);
+    }
+}
+
+//экипирование оружея
+void USTUWeaponComponent::EquipWeapon(int32 WeaponIndex)
+{
+    ACharacter* Character = Cast<ACharacter>(GetOwner());
+    if (!Character) return;
+
+    if (CurrentWeapon)
+    {
+        CurrentWeapon->StopFire();
+        AttachWeaponToSocket(CurrentWeapon, Character->GetMesh(), WeaponArmorySocketName);
+    }
+
+    CurrentWeapon = Weapons[WeaponIndex];
+    AttachWeaponToSocket(CurrentWeapon, Character->GetMesh(), WeaponEquipSocketName);
+}
+
+void USTUWeaponComponent::AttachWeaponToSocket(ASTUBaseWeapon* Weapon, USceneComponent* SceneComponent, const FName& SocketName)
+{
+    if (!Weapon || !SceneComponent) return;
+
+    //аттач к мешу, руке
+    FAttachmentTransformRules AttachmentRules(EAttachmentRule::SnapToTarget, false);
+    Weapon->AttachToComponent(SceneComponent, AttachmentRules, SocketName);
+}
+
+void USTUWeaponComponent::StartFire()
+{
+    if (!CurrentWeapon) return;
+
+    //если есть оружие, то вызов из ASTUBaseWeapon Fire
+    CurrentWeapon->StartFire();
+}
+
+void USTUWeaponComponent::StopFire()
+{
+    if (!CurrentWeapon) return;
+    CurrentWeapon->StopFire();
+}
+
+void USTUWeaponComponent::NextWeapon()
+{
+    //что бы переменная не вышла за приделы массива
+    //берем ее по модулю длины массива, то есть если значение счетчика будет равно длине массива
+    //то будет равно 0
+    CurrentWeaponIndex = (CurrentWeaponIndex + 1) % Weapons.Num();
+    EquipWeapon(CurrentWeaponIndex);
+}
+```
+
+## Anim Notify
+
+equipNotify.h
+
+```cpp
+// Shoot Them Up Game, All Right Reserved.
+
+#pragma once
+
+#include "CoreMinimal.h"
+#include "Animation/AnimNotifies/AnimNotify.h"
+#include "STUEquipFinishAnimNotify.generated.h"
+
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnNotifiedSingature, USkeletalMeshComponent*);
+
+UCLASS()
+class STU_API USTUEquipFinishAnimNotify : public UAnimNotify
+{
+    GENERATED_BODY()
+
+public:
+    virtual void Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation) override;
+
+    FOnNotifiedSingature OnNotified;
+};
+
+```
+
+equipNotify.cpp
+
+```cpp
+// Shoot Them Up Game, All Right Reserved.
+
+#include "STUEquipFinishAnimNotify.h"
+
+void USTUEquipFinishAnimNotify::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation)
+{
+    OnNotified.Broadcast(MeshComp);
+    Super::Notify(MeshComp, Animation);
+}
+```
+
+weaponComponent.h
+
+```cpp
+    void InitAnimations();
+    void OnEquipFinished(USkeletalMeshComponent* MeshComponent);
+```
+
+weaponComponent.cpp
+
+```cpp
+void USTUWeaponComponent::BeginPlay()
+{
+    Super::BeginPlay();
+
+    CurrentWeaponIndex = 0;
+    InitAnimations(); //start
+    SpawnWeapons();
+    EquipWeapon(CurrentWeaponIndex);
+}
+
+void USTUWeaponComponent::InitAnimations()
+{
+    if (!EquipAnimMontage) return;
+    const auto NotifyEvents = EquipAnimMontage->Notifies;
+
+    for (auto NotifyEvent : NotifyEvents)
+    {
+        auto EquipFinishNotify = Cast<USTUEquipFinishAnimNotify>(NotifyEvent.Notify);
+        if (EquipFinishNotify)
+        {
+            EquipFinishNotify->OnNotified.AddUObject(this, &USTUWeaponComponent::OnEquipFinished);
+            break;
+        }
+    }
+}
+
+void USTUWeaponComponent::OnEquipFinished(USkeletalMeshComponent* MeshComponent)
+{
+    ACharacter* Character = Cast<ACharacter>(GetOwner());
+    if (!Character) return;
+
+    if (Character->GetMesh() == MeshComponent)
+    {
+        UE_LOG(LogWeaponComponent, Display, TEXT("Equip finished!"));
+    }
+}
+```
+
+![[Pasted image 20250520122817.png]]
+
+## Equip Animation / Equip flag
+
+h
+
+```cpp
+// Shoot Them Up Game, All Right Reserved.
+
+#pragma once
+
+#include "CoreMinimal.h"
+#include "Components/ActorComponent.h"
+#include "STUWeaponComponent.generated.h"
+
+class ASTUBaseWeapon;
+
+UCLASS(ClassGroup = (Custom), meta = (BlueprintSpawnableComponent))
+class STU_API USTUWeaponComponent : public UActorComponent
+{
+    GENERATED_BODY()
+
+public:
+    // Sets default values for this component's properties
+    USTUWeaponComponent();
+
+    void StartFire();
+    void StopFire();
+    void NextWeapon();
+
+protected:
+    //массив из саб классов оружия
+    UPROPERTY(EditDefaultsOnly, Category = "Weapon")
+    TArray<TSubclassOf<ASTUBaseWeapon>> WeaponClasses;
+
+    UPROPERTY(EditDefaultsOnly, Category = "Weapon")
+    FName WeaponEquipSocketName = "WeaponSocket";
+
+    UPROPERTY(EditDefaultsOnly, Category = "Weapon")
+    FName WeaponArmorySocketName = "ArmorySocket";
+
+    UPROPERTY(EditDefaultsOnly, Category = "Animation")
+    UAnimMontage* EquipAnimMontage;
+
+    // Called when the game starts
+    virtual void
+    BeginPlay() override;
+
+    //вызывается при уничтожении
+    virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
+
+private:
+    UPROPERTY()
+    ASTUBaseWeapon* CurrentWeapon = nullptr;
+
+    UPROPERTY()
+    TArray<ASTUBaseWeapon*> Weapons;
+
+    int32 CurrentWeaponIndex = 0;
+    bool EquipAnimInProgress = false;
+
+    //спавн оружие и присоединение к персонажу
+    void SpawnWeapons();
+    void AttachWeaponToSocket(ASTUBaseWeapon* Weapon,
+        USceneComponent* SceneComponent, const FName& SocketName);
+    void EquipWeapon(int32 WeaponIndex);
+
+    void PlayAnimMontage(UAnimMontage* Animation);
+    void InitAnimations();
+    void OnEquipFinished(USkeletalMeshComponent* MeshComponent);
+
+    bool CanFire() const;
+    bool CanEquip() const;
+};
+
+```
+
+cpp
+
+```cpp
+// Shoot Them Up Game, All Right Reserved.
+
+#include "STUWeaponComponent.h"
+#include "STU/Weapons/STUBaseWeapon.h"
+#include "GameFramework/Character.h"
+#include "STU/Animations/STUEquipFinishAnimNotify.h"
+
+DEFINE_LOG_CATEGORY_STATIC(LogWeaponComponent, All, All);
+
+USTUWeaponComponent::USTUWeaponComponent()
+{
+
+    PrimaryComponentTick.bCanEverTick = false;
+}
+
+void USTUWeaponComponent::BeginPlay()
+{
+    Super::BeginPlay();
+
+    CurrentWeaponIndex = 0;
+    InitAnimations();
+    SpawnWeapons();
+    EquipWeapon(CurrentWeaponIndex);
+}
+
+//функция при уничтожении
+void USTUWeaponComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+    CurrentWeapon = nullptr;
+    for (auto Weapon : Weapons)
+    {
+        Weapon->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
+        Weapon->Destroy();
+    }
+    Weapons.Empty();
+
+    Super::EndPlay(EndPlayReason);
+}
+
+void USTUWeaponComponent::SpawnWeapons()
+{
+    ACharacter* Character = Cast<ACharacter>(GetOwner());
+    if (!Character || !GetWorld()) return;
+
+    for (auto WeaponClass : WeaponClasses)
+    {
+        //спавн оружия
+        auto Weapon = GetWorld()->SpawnActor<ASTUBaseWeapon>(WeaponClass);
+        if (!Weapon) continue;
+
+        Weapon->SetOwner(Character);
+        Weapons.Add(Weapon);
+
+        AttachWeaponToSocket(Weapon, Character->GetMesh(), WeaponArmorySocketName);
+    }
+}
+
+//экипирование оружея
+void USTUWeaponComponent::EquipWeapon(int32 WeaponIndex)
+{
+    ACharacter* Character = Cast<ACharacter>(GetOwner());
+    if (!Character) return;
+
+    if (CurrentWeapon)
+    {
+        CurrentWeapon->StopFire();
+        AttachWeaponToSocket(CurrentWeapon, Character->GetMesh(), WeaponArmorySocketName);
+    }
+
+    CurrentWeapon = Weapons[WeaponIndex];
+    AttachWeaponToSocket(CurrentWeapon, Character->GetMesh(), WeaponEquipSocketName);
+    EquipAnimInProgress = true;
+    PlayAnimMontage(EquipAnimMontage);
+}
+
+void USTUWeaponComponent::AttachWeaponToSocket(ASTUBaseWeapon* Weapon, USceneComponent* SceneComponent, const FName& SocketName)
+{
+    if (!Weapon || !SceneComponent) return;
+
+    //аттач к мешу, руке
+    FAttachmentTransformRules AttachmentRules(EAttachmentRule::SnapToTarget, false);
+    Weapon->AttachToComponent(SceneComponent, AttachmentRules, SocketName);
+}
+
+void USTUWeaponComponent::StartFire()
+{
+    if (!CanFire()) return;
+
+    //если есть оружие, то вызов из ASTUBaseWeapon Fire
+    CurrentWeapon->StartFire();
+}
+
+void USTUWeaponComponent::StopFire()
+{
+    if (!CurrentWeapon) return;
+    CurrentWeapon->StopFire();
+}
+
+void USTUWeaponComponent::NextWeapon()
+{
+    if (!CanEquip()) return;
+
+    //что бы переменная не вышла за приделы массива
+    //берем ее по модулю длины массива, то есть если значение счетчика будет равно длине массива
+    //то будет равно 0
+    CurrentWeaponIndex = (CurrentWeaponIndex + 1) % Weapons.Num();
+    EquipWeapon(CurrentWeaponIndex);
+}
+
+void USTUWeaponComponent::PlayAnimMontage(UAnimMontage* Animation)
+{
+    ACharacter* Character = Cast<ACharacter>(GetOwner());
+    if (!Character) return;
+
+    Character->PlayAnimMontage(Animation);
+}
+
+void USTUWeaponComponent::InitAnimations()
+{
+    if (!EquipAnimMontage) return;
+    const auto NotifyEvents = EquipAnimMontage->Notifies;
+
+    for (auto NotifyEvent : NotifyEvents)
+    {
+        auto EquipFinishNotify = Cast<USTUEquipFinishAnimNotify>(NotifyEvent.Notify);
+        if (EquipFinishNotify)
+        {
+            EquipFinishNotify->OnNotified.AddUObject(this, &USTUWeaponComponent::OnEquipFinished);
+            break;
+        }
+    }
+}
+
+void USTUWeaponComponent::OnEquipFinished(USkeletalMeshComponent* MeshComponent)
+{
+    ACharacter* Character = Cast<ACharacter>(GetOwner());
+    if (!Character || MeshComponent != Character->GetMesh()) return;
+
+    EquipAnimInProgress = false;
+}
+
+bool USTUWeaponComponent::CanFire() const
+{
+    return CurrentWeapon && !EquipAnimInProgress;
+}
+
+bool USTUWeaponComponent::CanEquip() const
+{
+    return !EquipAnimInProgress;
+}
+```
+
+## Slot upper body 
+
+
+![[Pasted image 20250520145907.png]]
+
+![[Pasted image 20250520145851.png]]
+
+![[Pasted image 20250520150037.png]]
+
+![[Pasted image 20250520145833.png]]
+
+
+![[Pasted image 20250520145747.png]]
+
+RootMotion может блокировать упавление движения персонажа, беря его из AM и анимаций 
+
+![[Pasted image 20250520145938.png]]
+
+## Ammo data
+
+baseweapon.h
+
+```cpp
+// Shoot Them Up Game, All Right Reserved.
+
+#pragma once
+
+#include "CoreMinimal.h"
+#include "GameFramework/Actor.h"
+#include "STUBaseWeapon.generated.h"
+
+class USkeletalMeshComponent;
+
+USTRUCT(BlueprintType)
+struct FAmmoData
+{
+    GENERATED_USTRUCT_BODY()
+
+    UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Weapon")
+    int32 Bullets;
+
+    //только тогда когда не установлен Infinite
+    UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Weapon", meta = (EditCondition = "!Infinite"))
+    int32 Clips;
+
+    UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Weapon")
+    bool Infinite;
+};
+
+UCLASS()
+class STU_API ASTUBaseWeapon : public AActor
+{
+    GENERATED_BODY()
+
+public:
+    ASTUBaseWeapon();
+
+    virtual void StartFire();
+    virtual void StopFire();
+
+protected:
+    UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Components")
+    USkeletalMeshComponent* WeaponMesh;
+
+    UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Weapon")
+    FName MuzzleSocketName = "MuzzleSocket";
+
+    //дальность стрельбы
+    UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Weapon")
+    float TraceMaxDistance = 5000.0f;
+
+    //15 патрон, 10 обойм, арсенал конечен false
+    UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Weapon")
+    FAmmoData DefaultAmmo{15, 10, false};
+
+    //UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    //TSubclassOf<UDamageType> DamageTypeClass;
+
+    virtual void BeginPlay() override;
+
+    virtual void MakeShot();
+
+    virtual bool GetTraceData(FVector& TraceStart, FVector& TraceEnd) const;
+
+    APlayerController* GetPlayerController() const;
+    bool GetPlayerViewPoint(FVector& ViewLocation, FRotator& ViewRotation) const;
+    FVector GetMuzzleWorldLocation() const;
+    void MakeHit(FHitResult& HitResult, const FVector& TraceStart, const FVector& TraceEnd);
+
+    void DecreaseAmmo();
+    bool IsAmmoEmpty() const;
+    bool IsClipEmpty() const;
+    void ChangeClip();
+    void LogAmmo();
+
+private:
+    FAmmoData CurrentAmmo;
+};
+
+```
+
+baseweapon.cpp
+
+```cpp
+// Shoot Them Up Game, All Right Reserved.
+
+#include "STUBaseWeapon.h"
+#include "Components/SkeletalMeshComponent.h"
+#include "Engine/World.h"
+#include "DrawDebugHelpers.h"
+#include "GameFramework/Character.h"
+#include "GameFramework/Controller.h"
+#include "STU/Character/STUBaseCharacter.h"
+#include "Kismet/GameplayStatics.h"
+#include "STU/Dev/STUFireDamageType.h"
+
+DEFINE_LOG_CATEGORY_STATIC(LogBaseWeapon, All, All);
+
+ASTUBaseWeapon::ASTUBaseWeapon()
+{
+    PrimaryActorTick.bCanEverTick = false;
+
+    WeaponMesh = CreateDefaultSubobject<USkeletalMeshComponent>("WeaponMesh");
+    SetRootComponent(WeaponMesh);
+}
+
+void ASTUBaseWeapon::BeginPlay()
+{
+    Super::BeginPlay();
+
+    check(WeaponMesh);
+    CurrentAmmo = DefaultAmmo;
+}
+
+void ASTUBaseWeapon::StartFire()
+{
+}
+
+void ASTUBaseWeapon::StopFire()
+{
+}
+
+void ASTUBaseWeapon::MakeShot()
+{
+}
+
+//функция возвращает контроллер
+APlayerController* ASTUBaseWeapon::GetPlayerController() const
+{
+    const auto Player = Cast<ACharacter>(GetOwner());
+    if (!Player) return nullptr;
+
+    return Player->GetController<APlayerController>();
+}
+
+//получение ViewPoint player
+bool ASTUBaseWeapon::GetPlayerViewPoint(FVector& ViewLocation, FRotator& ViewRotation) const
+{
+    const auto Controller = GetPlayerController();
+    if (!Controller) return false;
+
+    Controller->GetPlayerViewPoint(ViewLocation, ViewRotation);
+    return true;
+}
+
+//получение данные позиции сокета
+FVector ASTUBaseWeapon::GetMuzzleWorldLocation() const
+{
+    return WeaponMesh->GetSocketLocation(MuzzleSocketName);
+}
+
+//получение данных для trace
+bool ASTUBaseWeapon::GetTraceData(FVector& TraceStart, FVector& TraceEnd) const
+{
+    FVector ViewLocation;
+    FRotator ViewRotation;
+    if (!GetPlayerViewPoint(ViewLocation, ViewRotation)) return false;
+
+    //начальное положение это положение камеры
+    TraceStart = ViewLocation;
+
+    //берем forward vector из сокета или начала
+    //направление вектора в какую сторону стрельба идет
+    const FVector ShootDirection = ViewRotation.Vector();
+
+    //для точки конца берем начало + направление вектора с домноженная дистанцией (1500 ед)
+    TraceEnd = TraceStart + ShootDirection * TraceMaxDistance;
+    return true;
+}
+
+//функция трейса
+void ASTUBaseWeapon::MakeHit(FHitResult& HitResult, const FVector& TraceStart, const FVector& TraceEnd)
+{
+    if (!GetWorld()) return;
+
+    //акторы для игнора
+    FCollisionQueryParams CollisionParams;
+    CollisionParams.AddIgnoredActor(GetOwner());
+
+    //возвращает первый объект с которым будет пересечение
+    //записывает данные в HitResult
+    //блокает для всех видных объектов
+    GetWorld()->LineTraceSingleByChannel(HitResult, TraceStart, TraceEnd, ECollisionChannel::ECC_Visibility, CollisionParams);
+}
+
+//уменьшение патронов в магазине
+void ASTUBaseWeapon::DecreaseAmmo()
+{
+    CurrentAmmo.Bullets--;
+    LogAmmo();
+
+    if (IsClipEmpty() && !IsAmmoEmpty())
+    {
+        ChangeClip();
+    }
+}
+
+//есть ли вообще везде патроны 
+bool ASTUBaseWeapon::IsAmmoEmpty() const
+{
+    return !CurrentAmmo.Infinite && CurrentAmmo.Clips == 0 && IsClipEmpty();
+}
+
+//пустой ли магазин
+bool ASTUBaseWeapon::IsClipEmpty() const
+{
+    return CurrentAmmo.Bullets == 0;
+}
+
+//перезарядка оружия 
+void ASTUBaseWeapon::ChangeClip()
+{
+    CurrentAmmo.Bullets = DefaultAmmo.Bullets;
+    if (!CurrentAmmo.Infinite)
+    {
+        CurrentAmmo.Clips--;
+    }
+    UE_LOG(LogBaseWeapon, Display, TEXT("-----Change Clip -----"));
+}
+
+//выводит информацию о боеприпасах 
+void ASTUBaseWeapon::LogAmmo()
+{
+    FString AmmoInfo = "Ammo: " + FString::FromInt(CurrentAmmo.Bullets) + " / ";
+    AmmoInfo += CurrentAmmo.Infinite ? "Infinite" : FString::FromInt(CurrentAmmo.Clips);
+    UE_LOG(LogBaseWeapon, Display, TEXT("%s"), *AmmoInfo)
+}
+```
+
+## Различные анимации перезарядки, FindByPredicate
+
+h
+
+```cpp
+// Shoot Them Up Game, All Right Reserved.
+
+#pragma once
+
+#include "CoreMinimal.h"
+#include "Components/ActorComponent.h"
+#include "STUWeaponComponent.generated.h"
+
+class ASTUBaseWeapon;
+
+USTRUCT(BlueprintType)
+struct FWeaponData
+{
+    GENERATED_USTRUCT_BODY()
+
+    UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Weapon")
+    TSubclassOf<ASTUBaseWeapon> WeaponClass;
+
+    UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Weapon")
+    UAnimMontage* ReloadAnimMontage;
+};
+
+UCLASS(ClassGroup = (Custom), meta = (BlueprintSpawnableComponent))
+class STU_API USTUWeaponComponent : public UActorComponent
+{
+    GENERATED_BODY()
+
+public:
+    // Sets default values for this component's properties
+    USTUWeaponComponent();
+
+    void StartFire();
+    void StopFire();
+    void NextWeapon();
+    void Reload();
+
+protected:
+    //массив структур
+    UPROPERTY(EditDefaultsOnly, Category = "Weapon")
+    TArray<FWeaponData> WeaponData;
+
+    UPROPERTY(EditDefaultsOnly, Category = "Weapon")
+    FName WeaponEquipSocketName = "WeaponSocket";
+
+    UPROPERTY(EditDefaultsOnly, Category = "Weapon")
+    FName WeaponArmorySocketName = "ArmorySocket";
+
+    UPROPERTY(EditDefaultsOnly, Category = "Animation")
+    UAnimMontage* EquipAnimMontage;
+
+    // Called when the game starts
+    virtual void
+    BeginPlay() override;
+
+    //вызывается при уничтожении
+    virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
+
+private:
+    UPROPERTY()
+    ASTUBaseWeapon* CurrentWeapon = nullptr;
+
+    UPROPERTY()
+    TArray<ASTUBaseWeapon*> Weapons;
+
+    UPROPERTY()
+    UAnimMontage* CurrentReloadAnimMontage = nullptr;
+
+    int32 CurrentWeaponIndex = 0;
+    bool EquipAnimInProgress = false;
+    bool ReloadAnimInProgress = false;
+
+    //спавн оружие и присоединение к персонажу
+    void SpawnWeapons();
+    void AttachWeaponToSocket(ASTUBaseWeapon* Weapon,
+        USceneComponent* SceneComponent, const FName& SocketName);
+    void EquipWeapon(int32 WeaponIndex);
+
+    void PlayAnimMontage(UAnimMontage* Animation);
+    void InitAnimations();
+
+    void OnEquipFinished(USkeletalMeshComponent* MeshComponent);
+    void OnReloadFinished(USkeletalMeshComponent* MeshComponent);
+
+    bool CanFire() const;
+    bool CanEquip() const;
+    bool CanReload() const;
+
+    //шаблонная функция
+    template <typename T>
+    T* FindNotifyByClass(UAnimSequenceBase* Animation)
+    {
+        if (!Animation) return nullptr;
+
+        const auto NotifyEvents = Animation->Notifies;
+        for (auto NotifyEvent : NotifyEvents)
+        {
+            auto AnimNotify = Cast<T>(NotifyEvent.Notify);
+            if (AnimNotify)
+            {
+                return AnimNotify;
+            }
+        }
+        return nullptr;
+    }
+};
+
+```
+
+cpp
+
+```cpp
+// Shoot Them Up Game, All Right Reserved.
+
+#include "STUWeaponComponent.h"
+#include "STU/Weapons/STUBaseWeapon.h"
+#include "GameFramework/Character.h"
+#include "STU/Animations/STUEquipFinishAnimNotify.h"
+#include "STU/Animations/STUReloadFinishAnimNotify.h"
+
+DEFINE_LOG_CATEGORY_STATIC(LogWeaponComponent, All, All);
+
+USTUWeaponComponent::USTUWeaponComponent()
+{
+
+    PrimaryComponentTick.bCanEverTick = false;
+}
+
+void USTUWeaponComponent::BeginPlay()
+{
+    Super::BeginPlay();
+
+    CurrentWeaponIndex = 0;
+    InitAnimations();
+    SpawnWeapons();
+    EquipWeapon(CurrentWeaponIndex);
+}
+
+//функция при уничтожении
+void USTUWeaponComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+    CurrentWeapon = nullptr;
+    for (auto Weapon : Weapons)
+    {
+        Weapon->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
+        Weapon->Destroy();
+    }
+    Weapons.Empty();
+
+    Super::EndPlay(EndPlayReason);
+}
+
+void USTUWeaponComponent::SpawnWeapons()
+{
+    ACharacter* Character = Cast<ACharacter>(GetOwner());
+    if (!Character || !GetWorld()) return;
+
+    for (auto OneWeaponData : WeaponData)
+    {
+        //спавн оружия
+        auto Weapon = GetWorld()->SpawnActor<ASTUBaseWeapon>(OneWeaponData.WeaponClass);
+        if (!Weapon) continue;
+
+        Weapon->SetOwner(Character);
+        Weapons.Add(Weapon);
+
+        AttachWeaponToSocket(Weapon, Character->GetMesh(), WeaponArmorySocketName);
+    }
+}
+
+//экипирование оружея
+void USTUWeaponComponent::EquipWeapon(int32 WeaponIndex)
+{
+    if (WeaponIndex < 0 || WeaponIndex >= Weapons.Num())
+    {
+        UE_LOG(LogWeaponComponent, Warning, TEXT("Invalid weapon index"));
+        return;
+    }
+
+    ACharacter* Character = Cast<ACharacter>(GetOwner());
+    if (!Character) return;
+
+    if (CurrentWeapon)
+    {
+        CurrentWeapon->StopFire();
+        AttachWeaponToSocket(CurrentWeapon, Character->GetMesh(), WeaponArmorySocketName);
+    }
+
+    CurrentWeapon = Weapons[WeaponIndex];
+    //CurrentReloadAnimMontage = WeaponData[WeaponIndex].ReloadAnimMontage;
+    //каждый раз будет искать с структуре нужную анимацию, подходяющую для нас
+    //в CurrentWeaponData будет храниться указатель на найденную структуру
+    //FinDByPredicate это функциональный объект, который возвращает true/false
+    //в свою очередь функциональный объект это оператор []
+    //мы воспользуемся анонимной лямбдой функцией, которая будет применяться
+    //к каждому элементу массива
+    //и в случае класса структуры, которая является элементом массива
+    // совпадает с классом CurrentWeapon
+    // то нам вернется указатель на данную структуру, если нет то nullptr
+    //
+    // [&] означает захват внешних переменных, то есть мы можем обратиться к указателю
+    // CurrentWeapon, а параметр функции Data имеет тип элемента массива WeaponData
+    //
+    // К каждому элементу массива будет применина данная функци и при первом совпадении,
+    // нам вернется указатель на элемент массива
+    //
+    // установим CurrentReloadAnimMontage на анимацию перезарядки из найденной структуры
+    // CurrentWeaponData если не нуль, то обращаемся к полю, если нуль, то nullptr
+    //
+    const auto CurrentWeaponData = WeaponData.FindByPredicate([&](const FWeaponData& Data) //
+        {                                                                                  //
+            return Data.WeaponClass == CurrentWeapon->GetClass();
+        });
+    CurrentReloadAnimMontage = CurrentWeaponData ? CurrentWeaponData->ReloadAnimMontage : nullptr;
+
+    AttachWeaponToSocket(CurrentWeapon, Character->GetMesh(), WeaponEquipSocketName);
+    EquipAnimInProgress = true;
+    PlayAnimMontage(EquipAnimMontage);
+}
+
+void USTUWeaponComponent::AttachWeaponToSocket(ASTUBaseWeapon* Weapon, USceneComponent* SceneComponent, const FName& SocketName)
+{
+    if (!Weapon || !SceneComponent) return;
+
+    //аттач к мешу, руке
+    FAttachmentTransformRules AttachmentRules(EAttachmentRule::SnapToTarget, false);
+    Weapon->AttachToComponent(SceneComponent, AttachmentRules, SocketName);
+}
+
+void USTUWeaponComponent::StartFire()
+{
+    if (!CanFire()) return;
+
+    //если есть оружие, то вызов из ASTUBaseWeapon Fire
+    CurrentWeapon->StartFire();
+}
+
+void USTUWeaponComponent::StopFire()
+{
+    if (!CurrentWeapon) return;
+    CurrentWeapon->StopFire();
+}
+
+void USTUWeaponComponent::NextWeapon()
+{
+    if (!CanEquip()) return;
+
+    //что бы переменная не вышла за приделы массива
+    //берем ее по модулю длины массива, то есть если значение счетчика будет равно длине массива
+    //то будет равно 0
+    CurrentWeaponIndex = (CurrentWeaponIndex + 1) % Weapons.Num();
+    EquipWeapon(CurrentWeaponIndex);
+}
+
+void USTUWeaponComponent::PlayAnimMontage(UAnimMontage* Animation)
+{
+    ACharacter* Character = Cast<ACharacter>(GetOwner());
+    if (!Character) return;
+
+    Character->PlayAnimMontage(Animation);
+}
+
+//поиск по
+void USTUWeaponComponent::InitAnimations()
+{
+    //смена оружия
+    //поиск по анимации смены оружия
+    auto EquipFinishNotify = FindNotifyByClass<USTUEquipFinishAnimNotify>(EquipAnimMontage);
+    if (EquipFinishNotify)
+    {
+        //подписываемся на делегат notify, при его проходе запускаем функцию OnEquipFinished
+        EquipFinishNotify->OnNotified.AddUObject(this, &USTUWeaponComponent::OnEquipFinished);
+    }
+
+    //перезарядка
+    //поиск по массиву из анимация для перезарядки
+    for (auto OneWeaponData : WeaponData)
+    {
+        auto ReloadFinishNotify = FindNotifyByClass<USTUReloadFinishAnimNotify>(OneWeaponData.ReloadAnimMontage);
+        if (!ReloadFinishNotify) continue;
+
+        //если нашли подписывается на делегат notify и при его проходе запускаем функцию OnReloadFinished
+        ReloadFinishNotify->OnNotified.AddUObject(this, &USTUWeaponComponent::OnReloadFinished);
+    }
+}
+
+void USTUWeaponComponent::OnEquipFinished(USkeletalMeshComponent* MeshComponent)
+{
+    ACharacter* Character = Cast<ACharacter>(GetOwner());
+    if (!Character || MeshComponent != Character->GetMesh()) return;
+
+    EquipAnimInProgress = false;
+}
+
+void USTUWeaponComponent::OnReloadFinished(USkeletalMeshComponent* MeshComponent)
+{
+    ACharacter* Character = Cast<ACharacter>(GetOwner());
+    if (!Character || MeshComponent != Character->GetMesh()) return;
+
+    ReloadAnimInProgress = false;
+}
+
+bool USTUWeaponComponent::CanFire() const
+{
+    return CurrentWeapon && !EquipAnimInProgress && !ReloadAnimInProgress;
+}
+
+//возвращается EquipAnimInProgress, значение можем ли мы сейчас менять оружие
+//мы не можем во время уже смены
+bool USTUWeaponComponent::CanEquip() const
+{
+    return !EquipAnimInProgress && !ReloadAnimInProgress;
+}
+
+bool USTUWeaponComponent::CanReload() const
+{
+    return CurrentWeapon && !EquipAnimInProgress && !ReloadAnimInProgress;
+}
+
+//Перезарядка
+void USTUWeaponComponent::Reload()
+{
+    if (!CanReload()) return;
+    ReloadAnimInProgress = true;
+    PlayAnimMontage(CurrentReloadAnimMontage);
+}
+```
+
+![[Pasted image 20250520161858.png]]
+
+## Шаблон класса для anim notify 
+
+base.h
+
+```cpp
+// Shoot Them Up Game, All Right Reserved.
+
+#pragma once
+
+#include "CoreMinimal.h"
+#include "Animation/AnimNotifies/AnimNotify.h"
+#include "STUAnimNotify.generated.h"
+
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnNotifiedSingature, USkeletalMeshComponent*);
+
+UCLASS()
+class STU_API USTUAnimNotify : public UAnimNotify
+{
+	GENERATED_BODY()
+	
+		public:
+      virtual void Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation) override;
+
+      FOnNotifiedSingature OnNotified;
+};
+
+```
+
+child1.h
+
+```cpp
+// Shoot Them Up Game, All Right Reserved.
+
+#pragma once
+
+#include "CoreMinimal.h"
+#include "STUAnimNotify.h"
+#include "STUReloadFinishAnimNotify.generated.h"
+
+/**
+ * 
+ */
+UCLASS()
+class STU_API USTUReloadFinishAnimNotify : public USTUAnimNotify
+{
+	GENERATED_BODY()
+	
+};
+
+```
+
+child2.h
+
+```cpp
+// Shoot Them Up Game, All Right Reserved.
+
+#pragma once
+
+#include "CoreMinimal.h"
+#include "STUAnimNotify.h"
+#include "STUEquipFinishAnimNotify.generated.h"
+
+
+
+UCLASS()
+class STU_API USTUEquipFinishAnimNotify : public USTUAnimNotify
+{
+    GENERATED_BODY()
+
+
+};
+
+```
+
+weaponComponent.h 
+
+```cpp
+// Shoot Them Up Game, All Right Reserved.
+
+#pragma once
+
+#include "CoreMinimal.h"
+#include "Components/ActorComponent.h"
+#include "STUWeaponComponent.generated.h"
+
+class ASTUBaseWeapon;
+
+USTRUCT(BlueprintType)
+struct FWeaponData
+{
+    GENERATED_USTRUCT_BODY()
+
+    UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Weapon")
+    TSubclassOf<ASTUBaseWeapon> WeaponClass;
+
+    UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Weapon")
+    UAnimMontage* ReloadAnimMontage;
+};
+
+UCLASS(ClassGroup = (Custom), meta = (BlueprintSpawnableComponent))
+class STU_API USTUWeaponComponent : public UActorComponent
+{
+    GENERATED_BODY()
+
+public:
+    // Sets default values for this component's properties
+    USTUWeaponComponent();
+
+    void StartFire();
+    void StopFire();
+    void NextWeapon();
+    void Reload();
+
+protected:
+    //массив структур
+    UPROPERTY(EditDefaultsOnly, Category = "Weapon")
+    TArray<FWeaponData> WeaponData;
+
+    UPROPERTY(EditDefaultsOnly, Category = "Weapon")
+    FName WeaponEquipSocketName = "WeaponSocket";
+
+    UPROPERTY(EditDefaultsOnly, Category = "Weapon")
+    FName WeaponArmorySocketName = "ArmorySocket";
+
+    UPROPERTY(EditDefaultsOnly, Category = "Animation")
+    UAnimMontage* EquipAnimMontage;
+
+    // Called when the game starts
+    virtual void
+    BeginPlay() override;
+
+    //вызывается при уничтожении
+    virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
+
+private:
+    UPROPERTY()
+    ASTUBaseWeapon* CurrentWeapon = nullptr;
+
+    UPROPERTY()
+    TArray<ASTUBaseWeapon*> Weapons;
+
+    UPROPERTY()
+    UAnimMontage* CurrentReloadAnimMontage = nullptr;
+
+    int32 CurrentWeaponIndex = 0;
+    bool EquipAnimInProgress = false;
+    bool ReloadAnimInProgress = false;
+
+    //спавн оружие и присоединение к персонажу
+    void SpawnWeapons();
+    void AttachWeaponToSocket(ASTUBaseWeapon* Weapon,
+        USceneComponent* SceneComponent, const FName& SocketName);
+    void EquipWeapon(int32 WeaponIndex);
+
+    void PlayAnimMontage(UAnimMontage* Animation);
+    void InitAnimations();
+
+    void OnEquipFinished(USkeletalMeshComponent* MeshComponent);
+    void OnReloadFinished(USkeletalMeshComponent* MeshComponent);
+
+    bool CanFire() const;
+    bool CanEquip() const;
+    bool CanReload() const;
+
+    //шаблонная функция
+    template <typename T>
+    T* FindNotifyByClass(UAnimSequenceBase* Animation)
+    {
+        if (!Animation) return nullptr;
+
+        const auto NotifyEvents = Animation->Notifies;
+        for (auto NotifyEvent : NotifyEvents)
+        {
+            auto AnimNotify = Cast<T>(NotifyEvent.Notify);
+            if (AnimNotify)
+            {
+                return AnimNotify;
+            }
+        }
+        return nullptr;
+    }
+};
+
+```
+
+weaponComponent.cpp
+
+```cpp
+//поиск по
+void USTUWeaponComponent::InitAnimations()
+{
+    //смена оружия
+    //поиск по анимации смены оружия
+    auto EquipFinishNotify = FindNotifyByClass<USTUEquipFinishAnimNotify>(EquipAnimMontage);
+    if (EquipFinishNotify)
+    {
+        //подписываемся на делегат notify, при его проходе запускаем функцию OnEquipFinished
+        EquipFinishNotify->OnNotified.AddUObject(this, &USTUWeaponComponent::OnEquipFinished);
+    }
+
+    //перезарядка
+    //поиск по массиву из анимация для перезарядки
+    for (auto OneWeaponData : WeaponData)
+    {
+        auto ReloadFinishNotify = FindNotifyByClass<USTUReloadFinishAnimNotify>(OneWeaponData.ReloadAnimMontage);
+        if (!ReloadFinishNotify) continue;
+
+        //если нашли подписывается на делегат notify и при его проходе запускаем функцию OnReloadFinished
+        ReloadFinishNotify->OnNotified.AddUObject(this, &USTUWeaponComponent::OnReloadFinished);
+    }
+}
+```
+
+## Автоматическая перезарядка 
+
+.h
+
+```cpp
+// Shoot Them Up Game, All Right Reserved.
+
+#pragma once
+
+#include "CoreMinimal.h"
+#include "Components/ActorComponent.h"
+#include "STUWeaponComponent.generated.h"
+
+class ASTUBaseWeapon;
+
+USTRUCT(BlueprintType)
+struct FWeaponData
+{
+    GENERATED_USTRUCT_BODY()
+
+    UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Weapon")
+    TSubclassOf<ASTUBaseWeapon> WeaponClass;
+
+    UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Weapon")
+    UAnimMontage* ReloadAnimMontage;
+};
+
+UCLASS(ClassGroup = (Custom), meta = (BlueprintSpawnableComponent))
+class STU_API USTUWeaponComponent : public UActorComponent
+{
+    GENERATED_BODY()
+
+public:
+    // Sets default values for this component's properties
+    USTUWeaponComponent();
+
+    void StartFire();
+    void StopFire();
+    void NextWeapon();
+    void Reload();
+
+protected:
+    //массив структур
+    UPROPERTY(EditDefaultsOnly, Category = "Weapon")
+    TArray<FWeaponData> WeaponData;
+
+    UPROPERTY(EditDefaultsOnly, Category = "Weapon")
+    FName WeaponEquipSocketName = "WeaponSocket";
+
+    UPROPERTY(EditDefaultsOnly, Category = "Weapon")
+    FName WeaponArmorySocketName = "ArmorySocket";
+
+    UPROPERTY(EditDefaultsOnly, Category = "Animation")
+    UAnimMontage* EquipAnimMontage;
+
+    // Called when the game starts
+    virtual void
+    BeginPlay() override;
+
+    //вызывается при уничтожении
+    virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
+
+private:
+    UPROPERTY()
+    ASTUBaseWeapon* CurrentWeapon = nullptr;
+
+    UPROPERTY()
+    TArray<ASTUBaseWeapon*> Weapons;
+
+    UPROPERTY()
+    UAnimMontage* CurrentReloadAnimMontage = nullptr;
+
+    int32 CurrentWeaponIndex = 0;
+    bool EquipAnimInProgress = false;
+    bool ReloadAnimInProgress = false;
+
+    //спавн оружие и присоединение к персонажу
+    void SpawnWeapons();
+    void AttachWeaponToSocket(ASTUBaseWeapon* Weapon,
+        USceneComponent* SceneComponent, const FName& SocketName);
+    void EquipWeapon(int32 WeaponIndex);
+
+    void PlayAnimMontage(UAnimMontage* Animation);
+    void InitAnimations();
+
+    void OnEquipFinished(USkeletalMeshComponent* MeshComponent);
+    void OnReloadFinished(USkeletalMeshComponent* MeshComponent);
+
+    bool CanFire() const;
+    bool CanEquip() const;
+    bool CanReload() const;
+
+    void OnEmptyClip();
+    void ChangeClip();
+
+    //шаблонная функция
+    template <typename T>
+    T* FindNotifyByClass(UAnimSequenceBase* Animation)
+    {
+        if (!Animation) return nullptr;
+
+        const auto NotifyEvents = Animation->Notifies;
+        for (auto NotifyEvent : NotifyEvents)
+        {
+            auto AnimNotify = Cast<T>(NotifyEvent.Notify);
+            if (AnimNotify)
+            {
+                return AnimNotify;
+            }
+        }
+        return nullptr;
+    }
+};
+
+```
+
+.cpp
+
+```cpp
+// Shoot Them Up Game, All Right Reserved.
+
+#include "STUWeaponComponent.h"
+#include "STU/Weapons/STUBaseWeapon.h"
+#include "GameFramework/Character.h"
+#include "STU/Animations/STUEquipFinishAnimNotify.h"
+#include "STU/Animations/STUReloadFinishAnimNotify.h"
+
+DEFINE_LOG_CATEGORY_STATIC(LogWeaponComponent, All, All);
+
+USTUWeaponComponent::USTUWeaponComponent()
+{
+
+    PrimaryComponentTick.bCanEverTick = false;
+}
+
+void USTUWeaponComponent::BeginPlay()
+{
+    Super::BeginPlay();
+
+    CurrentWeaponIndex = 0;
+    InitAnimations();
+    SpawnWeapons();
+    EquipWeapon(CurrentWeaponIndex);
+}
+
+//функция при уничтожении
+void USTUWeaponComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+    CurrentWeapon = nullptr;
+    for (auto Weapon : Weapons)
+    {
+        Weapon->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
+        Weapon->Destroy();
+    }
+    Weapons.Empty();
+
+    Super::EndPlay(EndPlayReason);
+}
+
+void USTUWeaponComponent::SpawnWeapons()
+{
+    ACharacter* Character = Cast<ACharacter>(GetOwner());
+    if (!Character || !GetWorld()) return;
+
+    for (auto OneWeaponData : WeaponData)
+    {
+        //спавн оружия
+        auto Weapon = GetWorld()->SpawnActor<ASTUBaseWeapon>(OneWeaponData.WeaponClass);
+        if (!Weapon) continue;
+
+        Weapon->OnClipEmpty.AddUObject(this, &USTUWeaponComponent::OnEmptyClip);
+        Weapon->SetOwner(Character);
+        Weapons.Add(Weapon);
+
+        AttachWeaponToSocket(Weapon, Character->GetMesh(), WeaponArmorySocketName);
+    }
+}
+
+//экипирование оружея
+void USTUWeaponComponent::EquipWeapon(int32 WeaponIndex)
+{
+    if (WeaponIndex < 0 || WeaponIndex >= Weapons.Num())
+    {
+        UE_LOG(LogWeaponComponent, Warning, TEXT("Invalid weapon index"));
+        return;
+    }
+
+    ACharacter* Character = Cast<ACharacter>(GetOwner());
+    if (!Character) return;
+
+    if (CurrentWeapon)
+    {
+        CurrentWeapon->StopFire();
+        AttachWeaponToSocket(CurrentWeapon, Character->GetMesh(), WeaponArmorySocketName);
+    }
+
+    CurrentWeapon = Weapons[WeaponIndex];
+    //CurrentReloadAnimMontage = WeaponData[WeaponIndex].ReloadAnimMontage;
+    //каждый раз будет искать с структуре нужную анимацию, подходяющую для нас
+    //в CurrentWeaponData будет храниться указатель на найденную структуру
+    //FinDByPredicate это функциональный объект, который возвращает true/false
+    //в свою очередь функциональный объект это оператор []
+    //мы воспользуемся анонимной лямбдой функцией, которая будет применяться
+    //к каждому элементу массива
+    //и в случае класса структуры, которая является элементом массива
+    // совпадает с классом CurrentWeapon
+    // то нам вернется указатель на данную структуру, если нет то nullptr
+    //
+    // [&] означает захват внешних переменных, то есть мы можем обратиться к указателю
+    // CurrentWeapon, а параметр функции Data имеет тип элемента массива WeaponData
+    //
+    // К каждому элементу массива будет применина данная функци и при первом совпадении,
+    // нам вернется указатель на элемент массива
+    //
+    // установим CurrentReloadAnimMontage на анимацию перезарядки из найденной структуры
+    // CurrentWeaponData если не нуль, то обращаемся к полю, если нуль, то nullptr
+    //
+    const auto CurrentWeaponData = WeaponData.FindByPredicate([&](const FWeaponData& Data) //
+        {                                                                                  //
+            return Data.WeaponClass == CurrentWeapon->GetClass();
+        });
+    CurrentReloadAnimMontage = CurrentWeaponData ? CurrentWeaponData->ReloadAnimMontage : nullptr;
+
+    AttachWeaponToSocket(CurrentWeapon, Character->GetMesh(), WeaponEquipSocketName);
+    EquipAnimInProgress = true;
+    PlayAnimMontage(EquipAnimMontage);
+}
+
+void USTUWeaponComponent::AttachWeaponToSocket(ASTUBaseWeapon* Weapon, USceneComponent* SceneComponent, const FName& SocketName)
+{
+    if (!Weapon || !SceneComponent) return;
+
+    //аттач к мешу, руке
+    FAttachmentTransformRules AttachmentRules(EAttachmentRule::SnapToTarget, false);
+    Weapon->AttachToComponent(SceneComponent, AttachmentRules, SocketName);
+}
+
+void USTUWeaponComponent::StartFire()
+{
+    if (!CanFire()) return;
+
+    //если есть оружие, то вызов из ASTUBaseWeapon Fire
+    CurrentWeapon->StartFire();
+}
+
+void USTUWeaponComponent::StopFire()
+{
+    if (!CurrentWeapon) return;
+    CurrentWeapon->StopFire();
+}
+
+void USTUWeaponComponent::NextWeapon()
+{
+    if (!CanEquip()) return;
+
+    //что бы переменная не вышла за приделы массива
+    //берем ее по модулю длины массива, то есть если значение счетчика будет равно длине массива
+    //то будет равно 0
+    CurrentWeaponIndex = (CurrentWeaponIndex + 1) % Weapons.Num();
+    EquipWeapon(CurrentWeaponIndex);
+}
+
+void USTUWeaponComponent::PlayAnimMontage(UAnimMontage* Animation)
+{
+    ACharacter* Character = Cast<ACharacter>(GetOwner());
+    if (!Character) return;
+
+    Character->PlayAnimMontage(Animation);
+}
+
+//поиск по
+void USTUWeaponComponent::InitAnimations()
+{
+    //смена оружия
+    //поиск по анимации смены оружия
+    auto EquipFinishNotify = FindNotifyByClass<USTUEquipFinishAnimNotify>(EquipAnimMontage);
+    if (EquipFinishNotify)
+    {
+        //подписываемся на делегат notify, при его проходе запускаем функцию OnEquipFinished
+        EquipFinishNotify->OnNotified.AddUObject(this, &USTUWeaponComponent::OnEquipFinished);
+    }
+
+    //перезарядка
+    //поиск по массиву из анимация для перезарядки
+    for (auto OneWeaponData : WeaponData)
+    {
+        auto ReloadFinishNotify = FindNotifyByClass<USTUReloadFinishAnimNotify>(OneWeaponData.ReloadAnimMontage);
+        if (!ReloadFinishNotify) continue;
+
+        //если нашли подписывается на делегат notify и при его проходе запускаем функцию OnReloadFinished
+        ReloadFinishNotify->OnNotified.AddUObject(this, &USTUWeaponComponent::OnReloadFinished);
+    }
+}
+
+void USTUWeaponComponent::OnEquipFinished(USkeletalMeshComponent* MeshComponent)
+{
+    ACharacter* Character = Cast<ACharacter>(GetOwner());
+    if (!Character || MeshComponent != Character->GetMesh()) return;
+
+    EquipAnimInProgress = false;
+}
+
+void USTUWeaponComponent::OnReloadFinished(USkeletalMeshComponent* MeshComponent)
+{
+    ACharacter* Character = Cast<ACharacter>(GetOwner());
+    if (!Character || MeshComponent != Character->GetMesh()) return;
+
+    ReloadAnimInProgress = false;
+}
+
+bool USTUWeaponComponent::CanFire() const
+{
+    return CurrentWeapon && !EquipAnimInProgress && !ReloadAnimInProgress;
+}
+
+//возвращается EquipAnimInProgress, значение можем ли мы сейчас менять оружие
+//мы не можем во время уже смены
+bool USTUWeaponComponent::CanEquip() const
+{
+    return !EquipAnimInProgress && !ReloadAnimInProgress;
+}
+
+bool USTUWeaponComponent::CanReload() const
+{
+    return CurrentWeapon            //
+           && !EquipAnimInProgress  //
+           && !ReloadAnimInProgress //
+           && CurrentWeapon->CanReload();
+}
+
+//Перезарядка
+void USTUWeaponComponent::Reload()
+{
+    ChangeClip();
+}
+
+void USTUWeaponComponent::OnEmptyClip()
+{
+    ChangeClip();
+}
+
+void USTUWeaponComponent::ChangeClip()
+{
+    if (!CanReload()) return;
+    CurrentWeapon->StopFire();
+    CurrentWeapon->ChangeClip();
+
+    ReloadAnimInProgress = true;
+    PlayAnimMontage(CurrentReloadAnimMontage);
+}
+```
+
+## Рефакторинг 
+
+coreTypes.h
+
+```cpp
+#pragma once
+
+#include "CoreMinimal.h"
+#include "UObject/ObjectMacros.h" 
+#include "STUCoreTypes.generated.h" 
+
+//Weapon 
+class ASTUBaseWeapon;
+
+DECLARE_MULTICAST_DELEGATE(FOnClipEmptySignature);
+
+USTRUCT(BlueprintType)
+struct FAmmoData
+{
+    GENERATED_USTRUCT_BODY()
+
+    UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Weapon")
+    int32 Bullets;
+
+    //только тогда когда не установлен Infinite
+    UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Weapon", meta = (EditCondition = "!Infinite"))
+    int32 Clips;
+
+    UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Weapon")
+    bool Infinite;
+};
+
+USTRUCT(BlueprintType)
+struct FWeaponData
+{
+    GENERATED_USTRUCT_BODY()
+
+    UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Weapon")
+    TSubclassOf<ASTUBaseWeapon> WeaponClass;
+
+    UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Weapon")
+    UAnimMontage* ReloadAnimMontage;
+};
+
+//Health
+
+//делегат на смерть персонажа
+DECLARE_MULTICAST_DELEGATE(FOnDeath);
+//делегат, когда меняются жизни персонажа
+//с помощью него можно убрать логику с тика, на проверку здоровья
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnHealthChanged, float);
+
+```
+
+## Blueprint Widget 
+
+В общем классе HUD создаем и подключаем в game mode
+
+![[Pasted image 20250521204138.png]]
+
+![[Pasted image 20250521204103.png]]
+
+в health component создаем функцию и выводим ее 
+
+```cpp
+    //возвращает значение здоровья в процентах
+    UFUNCTION(BlueprintCallable, Category = "Health")
+    float GetHealthPercent() const { return Health / MaxHealth; }
+```
+
+делаем бинд на вызов 
+
+![[Pasted image 20250521204259.png]]
+
+![[Pasted image 20250521204155.png]]
+
+## Widget in C++
+
+HealthComponent.h
+
+```cpp
+
+    //возвращает значение здоровья в процентах
+    UFUNCTION(BlueprintCallable, Category = "Health")
+    float GetHealthPercent() const { return Health / MaxHealth; }
+```
+
+PlayerHUDWidget.h
+
+```cpp
+// Shoot Them Up Game, All Right Reserved.
+
+#pragma once
+
+#include "CoreMinimal.h"
+#include "Blueprint/UserWidget.h"
+#include "STUPlayerHUDWidget.generated.h"
+
+UCLASS()
+class STU_API USTUPlayerHUDWidget : public UUserWidget
+{
+    GENERATED_BODY()
+
+public:
+    UFUNCTION(BlueprintCallable, Category = "UI")
+    float GetHealthPercent() const;
+};
+
+```
+
+PlayerHUDWidget.cpp
+
+```cpp
+// Shoot Them Up Game, All Right Reserved.
+
+#include "STUPlayerHUDWidget.h"
+#include "STU/Character/STUHealthComponent.h"
+
+float USTUPlayerHUDWidget::GetHealthPercent() const
+{
+    //указатель на игрока
+    //берет павн, который в данный момент управляется 
+    const auto Player = GetOwningPlayerPawn();
+    if (!Player) return 0.0f;
+
+    //референс на компонент здровья 
+    const auto Component = Player->GetComponentByClass(USTUHealthComponent::StaticClass());
+    //так GetComponentByClass приводит к UActorComponent, поэтому с помощью Cast мы приводим к HealthComponent
+    const auto HealthComponent = Cast<USTUHealthComponent>(Component);
+    if (!HealthComponent) return 0.0f;
+
+    return HealthComponent->GetHealthPercent();
+
+}
+
+```
+
+gameHUD.h
+
+```cpp
+// Shoot Them Up Game, All Right Reserved.
+
+#pragma once
+
+#include "CoreMinimal.h"
+#include "GameFramework/HUD.h"
+#include "STUGameHUD.generated.h"
+
+/**
+ * 
+ */
+UCLASS()
+class STU_API ASTUGameHUD : public AHUD
+{
+    GENERATED_BODY()
+
+public:
+    virtual void DrawHUD() override;
+
+protected:
+    UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "UI")
+    TSubclassOf<UUserWidget> PlayerHUDWidgetClass;
+
+    virtual void BeginPlay() override;
+
+private:
+    void DrawCrossHair();
+};
+
+```
+
+gameHUD.cpp
+
+```cpp
+// Shoot Them Up Game, All Right Reserved.
+
+#include "STUGameHUD.h"
+#include "Engine/Canvas.h"
+#include "Blueprint/UserWidget.h"
+
+//перезапись виртуальной функции
+void ASTUGameHUD::DrawHUD()
+{
+    //вызов родительской функции
+    Super::DrawHUD();
+
+    DrawCrossHair();
+}
+
+void ASTUGameHUD::BeginPlay()
+{
+    Super::BeginPlay();
+    auto PlayerHUDWidget = CreateWidget<UUserWidget>(GetWorld(), PlayerHUDWidgetClass);
+    if (PlayerHUDWidget)
+    {
+        PlayerHUDWidget->AddToViewport();
+    }
+}
+
+void ASTUGameHUD::DrawCrossHair()
+{
+    //Определение центра
+    const TInterval<float> Center(Canvas->SizeX * 0.5f, Canvas->SizeY * 0.5f);
+
+    //ширини и длина, цвет
+    const float HalfLineSize = 10.0f;
+    const float LineThickness = 2.0f;
+    const FLinearColor LineColor = FLinearColor::Green;
+
+    //функция которая умеет рисовать линии
+    //горизонтальная линия
+    DrawLine(Center.Min - HalfLineSize, Center.Max, Center.Min + HalfLineSize, Center.Max, LineColor, LineThickness);
+
+    //вертикальная линия
+    DrawLine(Center.Min, Center.Max - HalfLineSize, Center.Min, Center.Max + HalfLineSize, LineColor, LineThickness);
+}
+
+```
+
+## Подключение значения здоровья в HUD
+
+WeaponComponent.h
+
+```
+
+    bool GetWeaponUIData(FWeaponUIData& UIData) const;
+    bool GetWeaponAmmoData(FAmmoData& AmmoData) const;
+
+```
+
+WeaponComponent.cpp
+
+```cpp
+bool USTUWeaponComponent::GetWeaponUIData(FWeaponUIData& UIData) const
+{
+    if (CurrentWeapon)
+    {
+        UIData = CurrentWeapon->GetUIData();
+        return true;
+    }
+    return false;
+}
+
+bool USTUWeaponComponent::GetWeaponAmmoData(FAmmoData& AmmoData) const
+{
+    if (CurrentWeapon)
+    {
+        AmmoData = CurrentWeapon->GetAmmoData();
+        return true;
+    }
+    return false;
+}
+```
+
+CoreTypes.h
+
+```cpp
+
+USTRUCT(BlueprintType)
+struct FWeaponUIData
+{
+    GENERATED_USTRUCT_BODY()
+
+    UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "UI")
+    UTexture2D* MainIcon;
+
+    
+    UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "UI")
+    UTexture2D* CrosshairIcon;
+};
+```
+
+STUPlayerHUDWidget.h
+
+```cpp
+// Shoot Them Up Game, All Right Reserved.
+
+#pragma once
+
+#include "CoreMinimal.h"
+#include "Blueprint/UserWidget.h"
+#include "STU/Core/STUCoreTypes.h"
+#include "STU/Character/STUWeaponComponent.h"
+#include "STUPlayerHUDWidget.generated.h"
+
+UCLASS()
+class STU_API USTUPlayerHUDWidget : public UUserWidget
+{
+    GENERATED_BODY()
+
+public:
+    UFUNCTION(BlueprintCallable, Category = "UI")
+    float GetHealthPercent() const;
+
+    UFUNCTION(BlueprintCallable, Category = "UI")
+    bool GetCurrentWeaponUIData(FWeaponUIData& UIData) const;
+
+    UFUNCTION(BlueprintCallable, Category = "UI")
+    bool GetCurrentWeaponAmmoData(FAmmoData& AmmoData) const;
+
+private:
+    USTUWeaponComponent* GetWeaponComponent() const;
+};
+
+```
+
+STUPlayerHUDWidget.cpp
+
+```cpp
+bool USTUPlayerHUDWidget::GetCurrentWeaponUIData(FWeaponUIData& UIData) const
+{
+    const auto WeaponComponent = GetWeaponComponent();
+    if (!WeaponComponent) return false;
+
+    return WeaponComponent->GetWeaponUIData(UIData);
+}
+
+bool USTUPlayerHUDWidget::GetCurrentWeaponAmmoData(FAmmoData& AmmoData) const
+{
+    const auto WeaponComponent = GetWeaponComponent();
+    if (!WeaponComponent) return false;
+
+    return WeaponComponent->GetWeaponAmmoData(AmmoData);
+}
+
+```
+
+![[Pasted image 20250522200801.png]]
+
+![[Pasted image 20250522200753.png]]
+
+![[Pasted image 20250522200746.png]]
+
+![[Pasted image 20250522200735.png]]
+
+Запуск анимации в HUD, иногда надо перезапустить проект 
+
+![[Pasted image 20250522224440.png]]
+
+![[Pasted image 20250522224520.png]]
+
+## Рефакторинг. создание общей функции возвращения указателя на компонент 
+
+```cpp
+#pragma once
+
+//шаблонная функция, которая возвращает указатель на тип компонента pawn 
+class STUUtils
+{
+public:
+    template <typename T>
+    static T* GetSTUPlayerComponent(APawn* PlayerPawn)
+    {
+        if (!PlayerPawn) return nullptr;
+
+        //референс на компонент оружия
+        const auto Component = PlayerPawn->GetComponentByClass(T::StaticClass());
+        return Cast<T>(Component);
+    }
+};
+```
+
+```cpp
+// Shoot Them Up Game, All Right Reserved.
+
+#include "STUPlayerHUDWidget.h"
+#include "STU/Character/STUHealthComponent.h"
+#include "STU/Character/STUWeaponComponent.h"
+#include "STU/Weapons/STUBaseWeapon.h"
+#include "STU/Core/STUUtils.h"
+
+float USTUPlayerHUDWidget::GetHealthPercent() const
+{
+    const auto HealthComponent = STUUtils::GetSTUPlayerComponent<USTUHealthComponent>(GetOwningPlayerPawn());
+    if (!HealthComponent) return 0.0f;
+
+    return HealthComponent->GetHealthPercent();
+}
+
+bool USTUPlayerHUDWidget::GetCurrentWeaponUIData(FWeaponUIData& UIData) const
+{
+    const auto WeaponComponent = STUUtils::GetSTUPlayerComponent<USTUWeaponComponent>(GetOwningPlayerPawn());
+    if (!WeaponComponent) return false;
+
+    return WeaponComponent->GetWeaponUIData(UIData);
+}
+
+bool USTUPlayerHUDWidget::GetCurrentWeaponAmmoData(FAmmoData& AmmoData) const
+{
+    const auto WeaponComponent = STUUtils::GetSTUPlayerComponent<USTUWeaponComponent>(GetOwningPlayerPawn());
+    if (!WeaponComponent) return false;
+
+    return WeaponComponent->GetWeaponAmmoData(AmmoData);
+}
+
+bool USTUPlayerHUDWidget::IsPlayerAlive() const
+{
+    const auto HealthComponent = STUUtils::GetSTUPlayerComponent<USTUHealthComponent>(GetOwningPlayerPawn());
+    return HealthComponent && !HealthComponent->IsDead();
+}
+
+bool USTUPlayerHUDWidget::IsPlayerSpectating() const
+{
+    const auto Controller = GetOwningPlayer();
+    return Controller && Controller->GetStateName() == NAME_Spectating;
+}
+```
+
+## Pickups
+
+base.h
+
+```cpp
+// Shoot Them Up Game, All Right Reserved.
+
+#pragma once
+
+#include "CoreMinimal.h"
+#include "GameFramework/Actor.h"
+#include "STUBasePickup.generated.h"
+
+class USphereComponent;
+
+UCLASS()
+class STU_API ASTUBasePickup : public AActor
+{
+    GENERATED_BODY()
+
+public:
+    ASTUBasePickup();
+
+protected:
+    UPROPERTY(VisibleAnywhere, Category = "Pickup")
+    USphereComponent* CollisionComponent;
+
+    virtual void BeginPlay() override;
+    virtual void NotifyActorBeginOverlap(AActor* OtherActor) override;
+
+public:
+    // Called every frame
+    virtual void Tick(float DeltaTime) override;
+};
+
+```
+
+base.cpp
+
+```cpp
+// Shoot Them Up Game, All Right Reserved.
+
+#include "STU/Pickups/STUBasePickup.h"
+#include "Components/SphereComponent.h"
+
+DEFINE_LOG_CATEGORY_STATIC(LogBasePickup, All, All);
+
+// Sets default values
+ASTUBasePickup::ASTUBasePickup()
+{
+    // Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
+    PrimaryActorTick.bCanEverTick = true;
+
+    CollisionComponent = CreateDefaultSubobject<USphereComponent>("SphereComponent");
+    CollisionComponent->InitSphereRadius(50.0f);
+    CollisionComponent->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+    CollisionComponent->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Overlap);
+    SetRootComponent(CollisionComponent);
+}
+
+// Called when the game starts or when spawned
+void ASTUBasePickup::BeginPlay()
+{
+    Super::BeginPlay();
+}
+
+// Called every frame
+void ASTUBasePickup::Tick(float DeltaTime)
+{
+    Super::Tick(DeltaTime);
+}
+
+void ASTUBasePickup::NotifyActorBeginOverlap(AActor* OtherActor)
+{
+    Super::NotifyActorBeginOverlap(OtherActor);
+
+    UE_LOG(LogBasePickup, Display, TEXT("Pickup was taken"));
+    Destroy();
+}
+```
+
+## Respawn PickUp, virtual pickup function, health pick up 
+
+basepick.h
+
+```cpp
+// Shoot Them Up Game, All Right Reserved.
+
+#pragma once
+
+#include "CoreMinimal.h"
+#include "GameFramework/Actor.h"
+#include "STUBasePickup.generated.h"
+
+class USphereComponent;
+
+UCLASS()
+class STU_API ASTUBasePickup : public AActor
+{
+    GENERATED_BODY()
+
+public:
+    ASTUBasePickup();
+
+protected:
+    UPROPERTY(VisibleAnywhere, Category = "Pickup")
+    USphereComponent* CollisionComponent;
+
+    UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Pickup")
+    float RespawnTime = 5.0f;
+
+    virtual void BeginPlay() override;
+    virtual void NotifyActorBeginOverlap(AActor* OtherActor) override;
+
+public:
+    // Called every frame
+    virtual void Tick(float DeltaTime) override;
+
+private:
+    float RotationYaw = 0.0f;
+
+    virtual bool GivePickupTo(APawn* PlayerPawn);
+
+    void PickupWasTaken();
+    void Respawn();
+    void GenerateRotationYaw();
+
+};
+
+```
+
+basepick.cpp
+
+```cpp
+// Shoot Them Up Game, All Right Reserved.
+
+#include "STU/Pickups/STUBasePickup.h"
+#include "Components/SphereComponent.h"
+
+DEFINE_LOG_CATEGORY_STATIC(LogBasePickup, All, All);
+
+// Sets default values
+ASTUBasePickup::ASTUBasePickup()
+{
+    // Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
+    PrimaryActorTick.bCanEverTick = true;
+
+    CollisionComponent = CreateDefaultSubobject<USphereComponent>("SphereComponent");
+    CollisionComponent->InitSphereRadius(50.0f);
+    CollisionComponent->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+    CollisionComponent->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Overlap);
+    SetRootComponent(CollisionComponent);
+}
+
+// Called when the game starts or when spawned
+void ASTUBasePickup::BeginPlay()
+{
+    Super::BeginPlay();
+
+    check(CollisionComponent);
+
+    GenerateRotationYaw();
+}
+
+// Called every frame
+void ASTUBasePickup::Tick(float DeltaTime)
+{
+    Super::Tick(DeltaTime);
+
+    AddActorLocalRotation(FRotator(0.0f, RotationYaw, 0.0f));
+}
+
+bool ASTUBasePickup::GivePickupTo(APawn* PlayerPawn)
+{
+    return false;
+}
+
+void ASTUBasePickup::PickupWasTaken()
+{
+    //коллизия перестанет действовать с окружающим миром
+    CollisionComponent->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
+    if (GetRootComponent())
+    {
+        GetRootComponent()->SetVisibility(false, true);
+    }
+
+    FTimerHandle RespawnTimerHandle;
+    GetWorldTimerManager().SetTimer(RespawnTimerHandle, this, &ASTUBasePickup::Respawn, RespawnTime);
+}
+
+void ASTUBasePickup::Respawn()
+{
+    GenerateRotationYaw();
+    CollisionComponent->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Overlap);
+    if (GetRootComponent())
+    {
+        GetRootComponent()->SetVisibility(true, true);
+    }
+}
+
+void ASTUBasePickup::GenerateRotationYaw()
+{
+    const auto Direction = FMath::RandBool() ? 1.0f : -1.0f;
+    RotationYaw = FMath::RandRange(1.0f, 2.0f) * Direction;
+}
+
+void ASTUBasePickup::NotifyActorBeginOverlap(AActor* OtherActor)
+{
+    Super::NotifyActorBeginOverlap(OtherActor);
+
+    const auto Pawn = Cast<APawn>(OtherActor);
+
+    if (GivePickupTo(Pawn))
+    {
+        PickupWasTaken();
+    }
+
+    //UE_LOG(LogBasePickup, Display, TEXT("Pickup was taken"));
+}
+```
+
+ammpickup.h
+
+```cpp
+// Shoot Them Up Game, All Right Reserved.
+
+#pragma once
+
+#include "CoreMinimal.h"
+#include "STUBasePickup.h"
+#include "STUAmmoPickup.generated.h"
+
+class ASTUBaseWeapon;
+
+UCLASS()
+class STU_API ASTUAmmoPickup : public ASTUBasePickup
+{
+    GENERATED_BODY()
+
+protected:
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Pickup", meta = (ClampMin = "1.0", ClampMax = "10.0"))
+    int32 ClipsAmount = 10;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Pickup")
+    TSubclassOf<ASTUBaseWeapon> WeaponType;
+
+private:
+    virtual bool GivePickupTo(APawn* PlayerPawn) override;
+};
+
+```
+
+ammpickup.h
+
+```cpp
+// Shoot Them Up Game, All Right Reserved.
+
+#include "STUAmmoPickup.h"
+#include "STU/Character/STUHealthComponent.h"
+#include "STU/Character/STUWeaponComponent.h"
+#include "STU/Core/STUUtils.h"
+
+DEFINE_LOG_CATEGORY_STATIC(LogAmmoPickup, All, All);
+
+bool ASTUAmmoPickup::GivePickupTo(APawn* PlayerPawn)
+{
+    const auto HealthComponent = STUUtils::GetSTUPlayerComponent<USTUHealthComponent>(PlayerPawn);
+    if (!HealthComponent || HealthComponent->IsDead()) return false;
+
+    const auto WeaponComponent = STUUtils::GetSTUPlayerComponent<USTUWeaponComponent>(PlayerPawn);
+    if (!WeaponComponent) return false;
+
+    //UE_LOG(LogAmmoPickup, Display, TEXT("Ammo was taken"));
+    return WeaponComponent->TryToAddAmmo(WeaponType, ClipsAmount);
+}
+```
+
+weapon.h
+
+```cpp
+public:
+    bool TryToAddAmmo(int32 ClipsAmount);
+    
+protected:
+    bool IsAmmoFull() const;
+```
+
+weapon.cpp
+
+```cpp
+//пополенение патрон при подбирании 
+bool ASTUBaseWeapon::TryToAddAmmo(int32 ClipsAmount)
+{
+    if (CurrentAmmo.Infinite || IsAmmoFull() || ClipsAmount <= 0) return false;
+
+    if (IsAmmoEmpty())
+    {
+        UE_LOG(LogBaseWeapon, Display, TEXT("Ammo was empty!"))
+        //CurrentAmmo.Clips = 0
+        CurrentAmmo.Clips = FMath::Clamp(ClipsAmount, 0, DefaultAmmo.Clips + 1);
+        OnClipEmpty.Broadcast(this);
+    }
+    else if (CurrentAmmo.Clips < DefaultAmmo.Clips)
+    {
+        const auto NextClipsAmount = CurrentAmmo.Clips + ClipsAmount;
+        if (DefaultAmmo.Clips - NextClipsAmount >= 0)
+        {
+            CurrentAmmo.Clips = NextClipsAmount;
+            UE_LOG(LogBaseWeapon, Display, TEXT("Clips was added!"))
+        }
+        else
+        {
+            CurrentAmmo.Clips = DefaultAmmo.Clips;
+            CurrentAmmo.Bullets = DefaultAmmo.Bullets;
+            UE_LOG(LogBaseWeapon, Display, TEXT("Ammo was full now!"))
+        }
+    }
+    else
+    {
+        CurrentAmmo.Bullets = DefaultAmmo.Bullets;
+        UE_LOG(LogBaseWeapon, Display, TEXT("Bullets ware added!"))
+    }
+
+    return true;
+}
+
+bool ASTUBaseWeapon::IsAmmoFull() const
+{
+    return CurrentAmmo.Clips == DefaultAmmo.Clips && //
+           CurrentAmmo.Bullets == DefaultAmmo.Bullets;
+}
+
+```
+
+healthpickup.h
+
+```cpp
+// Shoot Them Up Game, All Right Reserved.
+
+#pragma once
+
+#include "CoreMinimal.h"
+#include "STUBasePickup.h"
+#include "STUHealthPickup.generated.h"
+
+UCLASS()
+class STU_API ASTUHealthPickup : public ASTUBasePickup
+{
+    GENERATED_BODY()
+
+protected:
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Health", meta = (ClampMin = "1.0", ClampMax = "100"))
+    float HealthAmount = 100.0f;
+
+private:
+    virtual bool GivePickupTo(APawn* PlayerPawn) override;
+};
+
+```
+
+healthpickup.cpp
+
+```cpp
+// Shoot Them Up Game, All Right Reserved.
+
+#include "STUHealthPickup.h"
+#include "STU/Character/STUHealthComponent.h"
+#include "STU/Core/STUUtils.h"
+
+DEFINE_LOG_CATEGORY_STATIC(LogHealthPickup, All, All);
+
+bool ASTUHealthPickup::GivePickupTo(APawn* PlayerPawn)
+{
+    const auto HealthComponent = STUUtils::GetSTUPlayerComponent<USTUHealthComponent>(PlayerPawn);
+    if (!HealthComponent) return false;
+
+    //UE_LOG(LogHealthPickup, Display, TEXT("Health was taken"));
+
+    return HealthComponent->TryToAddHealth(HealthAmount);
+}
+```
+
+healthcomponent.h
+
+```cpp
+public:
+    bool TryToAddHealth(float HealthAmount);
+    bool IsHealthFull() const;
+```
+
+healthcomponent.cpp
+
+```cpp
+//функция пополения здоровья 
+bool USTUHealthComponent::TryToAddHealth(float HealthAmount)
+{
+    if (IsDead() || IsHealthFull()) return false;
+    //UE_LOG(LogHealthComponent, Display, TEXT("Health is valid"));
+
+    SetHealth(Health + HealthAmount);
+
+    return true;
+}
+
+
+bool USTUHealthComponent::IsHealthFull() const
+{
+    return FMath::IsNearlyEqual(Health, MaxHealth);
+}
+```
 

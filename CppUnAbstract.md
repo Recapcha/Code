@@ -8523,3 +8523,546 @@ bool USTUHealthComponent::IsHealthFull() const
 }
 ```
 
+## Niagara, Decals, VFX
+
+build.cs
+
+```cpp
+        PublicDependencyModuleNames.AddRange(new string[] 
+        {
+            "Core", 
+            "CoreUObject", 
+            "Engine", 
+            "InputCore",
+            "Niagara",
+            "PhysicsCore"
+        });
+```
+
+weaponFXComponent.h
+
+```cpp
+// Shoot Them Up Game, All Right Reserved.
+
+#pragma once
+
+#include "CoreMinimal.h"
+#include "Components/ActorComponent.h"
+#include "STU/Core/STUCoreTypes.h"
+#include "STUWeaponFXComponent.generated.h"
+
+class UNiagaraSystem;
+class UPhysicalMaterial;
+
+UCLASS(ClassGroup = (Custom), meta = (BlueprintSpawnableComponent))
+class STU_API USTUWeaponFXComponent : public UActorComponent
+{
+    GENERATED_BODY()
+
+public:
+    USTUWeaponFXComponent();
+
+    void PlayImpactFX(const FHitResult& Hit);
+
+protected:
+    UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "VFX")
+    FImpactData DefaultImpactData;
+
+    UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "VFX")
+    TMap<UPhysicalMaterial*, FImpactData> ImpactDataMap;
+
+
+};
+
+```
+
+weaponFXComponent.cpp
+
+```cpp
+// Shoot Them Up Game, All Right Reserved.
+
+#include "STU/Weapons/Components/STUWeaponFXComponent.h"
+#include "NiagaraFunctionLibrary.h"
+#include "PhysicalMaterials/PhysicalMaterial.h"
+#include "Kismet/GameplayStatics.h"
+#include "Components/DecalComponent.h"
+
+USTUWeaponFXComponent::USTUWeaponFXComponent()
+{
+    PrimaryComponentTick.bCanEverTick = true;
+}
+
+void USTUWeaponFXComponent::PlayImpactFX(const FHitResult& Hit)
+{
+    auto ImpactData = DefaultImpactData;
+
+    if (Hit.PhysMaterial.IsValid())
+    {
+        //возвращает указатель на материал
+        const auto PhysMat = Hit.PhysMaterial.Get();
+        if (ImpactDataMap.Contains(PhysMat))
+        {
+            ImpactData = ImpactDataMap[PhysMat];
+        }
+    }
+
+    //niagara
+    UNiagaraFunctionLibrary::SpawnSystemAtLocation //
+        (
+            GetWorld(),                 //
+            ImpactData.NiagaraEffect,   //
+            Hit.ImpactPoint,            //
+            Hit.ImpactNormal.Rotation() //
+        );
+
+    //decal
+
+    //UGameplayStatics::SpawnDecalAttached
+    auto DecalComponent = UGameplayStatics::SpawnDecalAtLocation //
+        (                                                        //
+            GetWorld(),                                          //
+            ImpactData.DecalData.Material,                       //
+            ImpactData.DecalData.Size,                           //
+            Hit.ImpactPoint,                                     //
+            Hit.ImpactNormal.Rotation()                          //
+        );
+    if (DecalComponent)
+    {
+        DecalComponent->SetFadeOut               //
+            (                                    //
+                ImpactData.DecalData.LifeTime,   //
+                ImpactData.DecalData.FadeOutTime //
+            );
+    }
+}
+
+```
+
+CoreTypes.h
+
+```cpp
+//VFX
+
+class UNiagaraSystem;
+
+USTRUCT(BlueprintType)
+struct FDecalData
+{
+    GENERATED_USTRUCT_BODY()
+
+    UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "VFX")
+    UMaterialInterface* Material;
+
+    UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "VFX")
+    FVector Size = FVector(10.0f);
+
+    UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "VFX")
+    float LifeTime = 5.0f;
+
+    UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "VFX")
+    float FadeOutTime = 0.7f;
+};
+
+
+USTRUCT(BlueprintType)
+struct FImpactData
+{
+    GENERATED_USTRUCT_BODY()
+
+    UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "VFX")
+    UNiagaraSystem* NiagaraEffect;
+
+    UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "VFX")
+    FDecalData DecalData;
+};
+```
+
+Подключение компонента 
+
+WeaponRifle.h
+
+```cpp
+// Shoot Them Up Game, All Right Reserved.
+
+#pragma once
+
+#include "CoreMinimal.h"
+#include "STUBaseWeapon.h"
+#include "STURifleWeapon.generated.h"
+
+class USTUWeaponFXComponent;
+
+UCLASS()
+class STU_API ASTURifleWeapon : public ASTUBaseWeapon
+{
+    GENERATED_BODY()
+
+public:
+    ASTURifleWeapon();
+
+    virtual void StartFire() override;
+    virtual void StopFire() override;
+
+protected:
+    UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Weapon")
+    float TimeBetweenShot = 0.1f;
+
+    //угол конуса, для разброса стрельбы из оружия
+    UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Weapon")
+    float BulletSpread = 1.5f;
+
+    UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
+    float DamageAmount = 10.0f;
+
+	//FX component
+    UPROPERTY(VisibleAnywhere, Category = "VFX")
+    USTUWeaponFXComponent* WeaponFXComponent;
+
+    virtual void BeginPlay() override;
+    virtual void MakeShot() override;
+    virtual bool GetTraceData(FVector& TraceStart, FVector& TraceEnd) const override;
+
+private:
+    FTimerHandle ShotTimerHandle;
+
+    void MakeDamage(FHitResult& HitResult);
+};
+
+```
+
+WeaponRifle.cpp
+
+```cpp
+
+#include "STU/Weapons/Components/STUWeaponFXComponent.h"
+
+ASTURifleWeapon::ASTURifleWeapon()
+{
+    WeaponFXComponent = CreateDefaultSubobject<USTUWeaponFXComponent>("WeaponComponent");
+}
+
+
+void ASTURifleWeapon::BeginPlay()
+{
+    Super::BeginPlay();
+
+    check(WeaponFXComponent);
+}
+
+
+//выстрел
+void ASTURifleWeapon::MakeShot()
+{
+    //UE_LOG(LogTemp, Display, TEXT("Make shot"));
+
+    if (!GetWorld() || IsAmmoEmpty())
+    {
+        StopFire();
+        return;
+    }
+
+    FVector TraceStart, TraceEnd;
+    if (!GetTraceData(TraceStart, TraceEnd))
+    {
+        StopFire();
+        return;
+    }
+
+    FHitResult HitResult;
+    MakeHit(HitResult, TraceStart, TraceEnd);
+
+    if (HitResult.bBlockingHit)
+    {
+        //вызов фукнции нанесения урона
+        MakeDamage(HitResult);
+
+        //рисуем линию
+        //persistance - отрисовка один раз
+        //DrawDebugLine(GetWorld(), GetMuzzleWorldLocation(), HitResult.ImpactPoint, FColor::Red, false, 5.0f, 0, 3.0f);
+
+        //рисование сферы в точки попадания
+        //DrawDebugSphere(GetWorld(), HitResult.ImpactPoint, 10.0f, 24, FColor::Red, false, 5.0f);
+
+        //вывод кости в которую попали
+        //UE_LOG(LogRifleWeapon, Display, TEXT("Bone: %s"), *HitResult.BoneName.ToString());
+
+		//Спаун VFX
+        WeaponFXComponent->PlayImpactFX(HitResult);
+    }
+    else
+    {
+        //рисуем линию
+        //persistance - отрисовка один раз
+        //DrawDebugLine(GetWorld(), GetMuzzleWorldLocation(), TraceEnd, FColor::Red, false, 5.0f, 0, 3.0f);
+    }
+
+    DecreaseAmmo();
+}
+```
+
+## Decals, blueprint 
+
+![[Pasted image 20250525033236.png]]
+
+![[Pasted image 20250525033309.png]]
+
+![[Pasted image 20250525033324.png]]
+
+## Niagara
+
+![[Pasted image 20250525033419.png]]
+
+Add Velocity - Cone Angel - поворот в какую сторону выстрел партикла
+
+![[Pasted image 20250525033439.png]]
+
+Initialize Particle - Color - Цвет партикла
+
+Initialize Particle - Sprite Size - Размер партикла 
+
+![[Pasted image 20250525033517.png]]
+
+Человек - соло просмотр партикла 
+
+![[Pasted image 20250525033602.png]]
+
+Spawn Berst intantaneous - Spawn Count 
+
+Количество частиц и при спавне 
+
+![[Pasted image 20250525033633.png]]
+
+## Radgoll 
+
+Физика тряпичной куклы 
+
+```cpp
+
+begin play
+    check(GetMesh());
+
+
+
+    GetMesh()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+    GetMesh()->SetSimulatePhysics(true);
+```
+
+## Camera Shake
+
+![[Pasted image 20250525040258.png]]
+
+![[Pasted image 20250525040319.png]]
+
+HealthComponent.h
+
+```cpp
+
+class UCameraShakeBase;
+
+UCLASS(ClassGroup = (Custom), meta = (BlueprintSpawnableComponent))
+class STU_API USTUHealthComponent : public UActorComponent
+{
+    GENERATED_BODY()
+
+protected:
+    UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "VFX")
+    TSubclassOf<UCameraShakeBase> CameraShake;
+private:
+    void PlayCameraShake();
+}
+```
+
+HealthComponent.cpp
+
+```cpp
+#include "STUHealthComponent.h"
+#include "GameFramework/Actor.h"
+#include "GameFramework/Pawn.h"
+#include "GameFramework/Controller.h"
+#include "Engine/World.h"
+#include "TimerManager.h"
+#include "Camera/CameraShake.h"
+
+
+void USTUHealthComponent::PlayCameraShake()
+{
+    if(IsDead()) return;
+
+    const auto Player = Cast<APawn>(GetOwner());
+    if (!Player) return;
+
+    const auto Controller = Player->GetController<APlayerController>();
+    if (!Controller || !Controller->PlayerCameraManager) return;
+
+    Controller->PlayerCameraManager->StartCameraShake(CameraShake);
+}
+
+```
+
+
+## Unreal Niagara, Trace, переменные 
+
+![[Pasted image 20250527031643.png]]
+
+![[Pasted image 20250527022720.png]]
+
+![[Pasted image 20250527031656.png]]
+
+base weapon.h
+
+```cpp
+class UNiagaraSystem;
+class UNiagaraComponent;
+
+UCLASS()
+class STU_API ASTUBaseWeapon : public AActor
+{
+    GENERATED_BODY()
+protected:
+
+    UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "VFX")
+    UNiagaraSystem* MuzzleFX;
+
+    UNiagaraComponent* SpawnMuzzleFX();
+};
+
+```
+
+base weapon.cpp
+
+```cpp
+void ASTURifleWeapon::InitMuzzleFX()
+{
+    if (!MuzzleFXComponent)
+    {
+        MuzzleFXComponent = SpawnMuzzleFX();
+    }
+    SetMuzzleFXVisibility(true);
+}
+
+void ASTURifleWeapon::SetMuzzleFXVisibility(bool Visible)
+{
+    if (MuzzleFXComponent)
+    {
+        MuzzleFXComponent->SetPaused(!Visible);
+        MuzzleFXComponent->SetVisibility(Visible, true);
+    }
+}
+
+void ASTURifleWeapon::SpawnTraceFX(const FVector& TraceStart, const FVector& TraceEnd)
+{
+    const auto TraceFXComponent = UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), TraceFX, TraceStart);
+    if (TraceFXComponent)
+    {
+        TraceFXComponent->SetNiagaraVariableVec3(TraceTargetName, TraceEnd);
+    }
+}
+
+```
+
+rifle.h
+
+```cpp
+
+class USTUWeaponFXComponent;
+class UNiagaraComponent;
+class UNiagaraSystem;
+
+    UPROPERTY(VisibleAnywhere, Category = "VFX")
+    USTUWeaponFXComponent* WeaponFXComponent;
+
+    UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "VFX")
+    UNiagaraSystem* TraceFX;
+
+    UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "VFX")
+    FString TraceTargetName = "TraceTarget";
+
+    void InitMuzzleFX();
+    void SetMuzzleFXVisibility(bool Visible);
+    void SpawnTraceFX(const FVector& TraceStart, const FVector& TraceEnd);
+```
+
+rifle.cpp
+
+```cpp
+void ASTURifleWeapon::InitMuzzleFX()
+{
+    if (!MuzzleFXComponent)
+    {
+        MuzzleFXComponent = SpawnMuzzleFX();
+    }
+    SetMuzzleFXVisibility(true);
+}
+
+void ASTURifleWeapon::SetMuzzleFXVisibility(bool Visible)
+{
+    if (MuzzleFXComponent)
+    {
+        MuzzleFXComponent->SetPaused(!Visible);
+        MuzzleFXComponent->SetVisibility(Visible, true);
+    }
+}
+
+void ASTURifleWeapon::SpawnTraceFX(const FVector& TraceStart, const FVector& TraceEnd)
+{
+    const auto TraceFXComponent = UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), TraceFX, TraceStart);
+    if (TraceFXComponent)
+    {
+        TraceFXComponent->SetNiagaraVariableVec3(TraceTargetName, TraceEnd);
+    }
+}
+
+```
+
+projectile.cpp
+
+```cpp
+class USTUWeaponFXComponent;
+
+
+    UPROPERTY(VisibleAnywhere, Category = "VFX")
+    USTUWeaponFXComponent* WeaponFXComponent;
+```
+
+launcher.h
+
+```cpp
+none
+```
+
+launcher.cpp
+
+```cpp
+void ASTULauncherWeapon::MakeShot()
+{
+    UE_LOG(LogTemp, Display, TEXT("Make shot"));
+
+    if (!GetWorld() || IsAmmoEmpty()) return;
+
+    FVector TraceStart, TraceEnd;
+    if (!GetTraceData(TraceStart, TraceEnd)) return;
+
+    FHitResult HitResult;
+    MakeHit(HitResult, TraceStart, TraceEnd);
+
+    //в точку записывается значение в зависимости от того
+    //попали ли мы куда то, если да попали, то пишем ImpactPoint, если нет то TraceEnd
+    const FVector EndPoint = HitResult.bBlockingHit ? HitResult.ImpactPoint : TraceEnd;
+
+    //Направление
+    const FVector Direction = (EndPoint - GetMuzzleWorldLocation()).GetSafeNormal();
+
+    const FTransform SpawnTransform(FRotator::ZeroRotator, GetMuzzleWorldLocation());
+    ASTUProjectile* Projectile = GetWorld()->SpawnActorDeferred<ASTUProjectile>(ProjectileClass, SpawnTransform);
+    if (Projectile)
+    {
+        Projectile->SetShotDirection(Direction);
+        Projectile->SetOwner(GetOwner());
+        Projectile->FinishSpawning(SpawnTransform);
+    }
+
+    DecreaseAmmo();
+    SpawnMuzzleFX();
+}
+
+```
